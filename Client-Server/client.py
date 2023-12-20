@@ -6,7 +6,7 @@ import cv2
 from PIL import Image, ImageTk
 import random
 import base64
-
+import re
 
 
 rfid_id =""
@@ -53,7 +53,28 @@ def capture_image():
     }
 
     response = requests.post(test_url, json=data, headers=headers)
+    # Parse the JSON response
+    response_data = response.json()
+
+    # Use regular expression to extract the part after the 10-digit number
+    response_id = response_data["id"]
+    response_message = response_data["message"]
+
+    response_color = {
+        1 : "green",
+        2 : "purple",
+        3 : "red",
+        4 : "red",
+        5 : "red",
+    }
+
+    color = response_color[response_id]
+
+    response_label = tk.Label(root, text=f"{response_message}", font=("Arial", 18), fg=f"{color}")
+    response_label.pack()  # Menampilkan label nama dengan warna hitam
+
     print(response.text)
+    root.after(2000, lambda: (response_label.destroy()))
 
 # Function to update the label text with RFID ID
 def update_label(event):

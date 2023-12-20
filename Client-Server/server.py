@@ -71,10 +71,10 @@ def recognizeFace(save_path, person_id):
 
 
     if (recognized_id == person_id):
-        print("Access Granted")
+        print("Face Matched!")
         return 1
     else:
-        print("Access Denied")
+        print("Face Denied!")
         return 0
 
 conn = psycopg2.connect(
@@ -103,7 +103,7 @@ def test():
     image_data = np.frombuffer(base64.b64decode(image_base64), np.uint8)
     img = cv2.imdecode(image_data, cv2.IMREAD_COLOR)
     # Save the received image
-    save_path = f'Facerecog\\ReceiveData\\{rfid_id}.jpg'
+    save_path = f'Client-Server\\ServerPhoto\\{rfid_id}.jpg'
     cv2.imwrite(save_path, img)
 
     try:
@@ -122,20 +122,20 @@ def test():
                 roomAccess = cursor.fetchone()
                 if recognized == 1:
                     if user[1] >= roomAccess[0]:
-                        response = {'success':True,'message': f'Welcome {user[0]}, Access Granted'}
+                        response = {'success':True,'message': f'Welcome {user[0]}, Access Granted', 'id':1}
                         # print(f'image received and saved. size={img.shape[1]}x{img.shape[0]}, saved at: {save_path}') 
                         response_pickled = jsonpickle.encode(response)
                         return Response(response=response_pickled, status=200, mimetype="application/json")
                     else:
-                        response={'success':False,'message':f'RFID ID={rfid_id} Access Mismatch'}
+                        response={'success':False,'message':f'RFID ID={rfid_id} Access Mismatch', 'id':2}
                         response_pickled = jsonpickle.encode(response)
                         return Response(response=response_pickled, status=404, mimetype="application/json")
                 else:
-                    response={'success':False,'message':f'RFID ID={rfid_id} Access Denied'}
+                    response={'success':False,'message':f'RFID ID={rfid_id} Access Denied', 'id':3}
                     response_pickled = jsonpickle.encode(response)
                     return Response(response=response_pickled, status=404, mimetype="application/json")
             except Exception as e:
-                response={'success':False,'message':f'room not found'}
+                response={'success':False,'message':f'room not found', 'id':4}
                 response_pickled = jsonpickle.encode(response)
                 return Response(response=response_pickled, status=500, mimetype="application/json")
                   
@@ -144,7 +144,7 @@ def test():
             # response_pickled = jsonpickle.encode(response)
             # return Response(response=response_pickled, status=200, mimetype="application/json")
         else:
-            response={'success':False,'message':f'RFID ID={rfid_id} not found. access denied'}
+            response={'success':False,'message':f'RFID ID={rfid_id} not found. access denied', 'id':5}
             response_pickled = jsonpickle.encode(response)
             return Response(response=response_pickled, status=404, mimetype="application/json")
     except Exception as e:
