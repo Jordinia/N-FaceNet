@@ -1,14 +1,23 @@
 import cv2
 import math
-import win32gui
+import torch
+# import win32gui
 from ultralytics import YOLO
 
-# Load YOLO model
-model = YOLO("yolo-Weights/yolov10s.pt")
+# Set device
+detectDevice = torch.cuda.is_available()
+print(detectDevice)
+device = torch.device('cuda') if detectDevice else torch.device('cpu')
+print(device)
 
-# Start RTSP stream
-cap = cv2.VideoCapture("rtsp://admin:qwerty123@172.16.0.106:554/cam/realmonitor?channel=1&subtype=0")
+# Load YOLO model
+model = YOLO("YOLO/yolo-Weights/yolov10s.pt")
+model.to(device)
+
 #cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture()
+# cap = cv2.VideoCapture("rtsp://admin:qwerty123@172.16.0.106:554/cam/realmonitor?channel=1&subtype=0") # RTSP Stream
+cap.open("http://172.18.160.1:65000/") # change the IP address of the stream
 cap.set(3, 640)
 cap.set(4, 480)
 
@@ -24,11 +33,11 @@ classNames = ["person", "bicycle", "car", "motorbike", "aeroplane", "bus", "trai
               "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors",
               "teddy bear", "hair drier", "toothbrush"]
 
-# Function to minimize window
-def minimize_window(window_name):
-    hwnd = win32gui.FindWindow(None, window_name)
-    if hwnd:
-        win32gui.ShowWindow(hwnd, 6)  # 6 = SW_MINIMIZE
+# # Function to minimize window
+# def minimize_window(window_name):
+#     hwnd = win32gui.FindWindow(None, window_name)
+#     if hwnd:
+#         win32gui.ShowWindow(hwnd, 6)  # 6 = SW_MINIMIZE
 
 # Create a resizable window
 cv2.namedWindow('Webcam', cv2.WINDOW_NORMAL)
@@ -73,9 +82,7 @@ while True:
     cv2.imshow('Webcam', img)
 
     k = cv2.waitKey(1)
-    if k == ord('m'):  # Minimize window
-        minimize_window('Webcam')
-    elif k == ord('q'):  # Quit
+    if k == ord('q'):  # Quit
         break
 
 cap.release()
