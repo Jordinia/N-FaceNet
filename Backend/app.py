@@ -22,6 +22,9 @@ def create_response(result):
     if result.get('count'):
         response["count"] = result['count']
 
+    if result.get('authentication'):
+        response["authentication"] = result['authentication']
+
     return response
 
 entry_bp = Blueprint('entry', __name__)
@@ -81,9 +84,9 @@ class EmployeeAPI(MethodView):
         result = employee_service.create_employee(data)
         return jsonify(create_response(result)), 201 if result['status'] == 'success' else 400
 
-    def put(self, employee_id):
+    def put(self, token):
         data = request.json
-        result = employee_service.update_employee(employee_id, data)
+        result = employee_service.register_employee_face(token, data)
         return jsonify(create_response(result)), 201 if result['status'] == 'success' else 400
 
     def get(self, employee_id=None):
@@ -105,8 +108,7 @@ class TokenAPI(MethodView):
         return jsonify(create_response(result)), 201 if result['status'] == 'success' else 400
 
     def put(self, token_id):
-        data = request.json
-        result = token_service.update_token(token_id, data)
+        result = token_service.approve_token(token_id)
         return jsonify(create_response(result)), 201 if result['status'] == 'success' else 400
 
     def get(self, token_id=None):
@@ -137,7 +139,8 @@ detection_bp.add_url_rule('/employee/<int:employee_id>', view_func=detection_vie
 # Register the EmployeeAPI view
 employee_view = EmployeeAPI.as_view('employee_api')
 employee_bp.add_url_rule('', view_func=employee_view, methods=['POST', 'GET'])
-employee_bp.add_url_rule('/<int:employee_id>', view_func=employee_view, methods=['GET', 'PUT', 'DELETE'])
+employee_bp.add_url_rule('/<int:employee_id>', view_func=employee_view, methods=['GET', 'DELETE'])
+employee_bp.add_url_rule('/<string:token>', view_func=employee_view, methods=['PUT'])
 employee_bp.add_url_rule('/employee/<int:employee_id>', view_func=employee_view, methods=['GET'])
 
 # Register the TokenAPI view

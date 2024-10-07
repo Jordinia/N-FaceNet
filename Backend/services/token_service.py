@@ -6,13 +6,14 @@ import string
 def generate_token(length=16):
     return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
 
-def create_token(data):
+def create_token(employee_id):
     try:
         token_data = {
             'token': generate_token(),
-            'employee_id': employee_repository.create_employee(data).get('employee_id'),
+            'employee_id': employee_id,
             'created_date': datetime.now(),
-            'expired_date': datetime.now() + timedelta(minutes=15)
+            'expired_date': datetime.now() + timedelta(minutes=15),
+            'is_approved': 0
         }
         
         result = token_repository.create_token(token_data)
@@ -41,22 +42,49 @@ def get_token(token_id):
         return {"data": token, "status": "success"}
     except KeyError:
         return {"status": "error", "message": "Invalid data"} 
+    
+def use_token(token):
+    try:
+        token = token_repository.get_token_by(token=("=", token), expired_date=(">", datetime.now()), is_approved=("=", 1))
+        if token == None:
+            return {"status": "error", "message": "Token already expired or have not been approved"}
+        
+        token['expired_date'] = datetime.now()
+        result = token_repository.update_token_by_id(token['token_id'], token)
+
+        return {"data": token, "status": "success", "message": result["message"]} 
+    except:
+        return {"data": None, "status": "error", "message": "Invalid data"}
 
 def update_token(token_id, data):
     try:
         token = {
             "token" : data.get('token'),
-            "employee_id" : data.get('employee_id'),
-            "created_date" : data.get('created_date'),
-            "expired_date" : data.get('expired_date')
+            "employee_id" : data.get('employee_id')
         }
 
         result = token_repository.update_token_by_id(token_id, token)
+
+        token['token_id'] = token_id
+
         return {"data": token, "status": "success", "message": result["message"]} 
-    
     except KeyError:
         return {"status": "error", "message": "Invalid data"} 
+    
+def approve_token(token_id):
+    try:
+        token = token_repository.get_token_by_id(token_id)
+    except:
+        return {"status": "error", "message": "Token not found"} 
+    
+    try:
+        token['is_approved'] = 1
+        result = token_repository.update_token_by_id(token_id, token)
 
+        return {"data": token, "status": "success", "message": result["message"]} 
+    except KeyError:
+        return {"status": "error", "message": "Invalid data"} 
+    
 # Delete an token
 def delete_token(token_id):
     try:

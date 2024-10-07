@@ -19,6 +19,7 @@ def get_db_connection():
 | employee_id  | int         | NO   |     | NULL    |                |
 | created_date | datetime    | NO   |     | NULL    |                |
 | expired_date | datetime    | NO   |     | NULL    |                |
+| is_approved  | tinyint(1)  | YES  |     | NULL    |                |
 +--------------+-------------+------+-----+---------+----------------+
 """
 
@@ -27,10 +28,10 @@ def create_token(token):
     cursor = connection.cursor()
 
     query = """
-    INSERT INTO Token (token, employee_id, created_date, expired_date) 
-    VALUES (%s, %s, %s, %s)
+    INSERT INTO Token (token, employee_id, created_date, expired_date, is_approved) 
+    VALUES (%s, %s, %s, %s, %s)
     """
-    cursor.execute(query, (token['token'], token['employee_id'], token['created_date'], token['expired_date']))
+    cursor.execute(query, (token['token'], token['employee_id'], token['created_date'], token['expired_date'], token['is_approved']))
     connection.commit()
 
     token_id = cursor.lastrowid
@@ -68,10 +69,22 @@ def get_token_by(**conditions):
     connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)
 
-    where_clause = " AND ".join([f"{column} = %s" for column in conditions.keys()])
+    where_clauses = []
+    values = []
+
+    for column, condition in conditions.items():
+        if isinstance(condition, tuple):
+            operator, value = condition
+        else:
+            operator, value = '=', condition
+
+        where_clauses.append(f"{column} {operator} %s")
+        values.append(value)
+
+    where_clause = " AND ".join(where_clauses)
     query = f"SELECT * FROM Token WHERE {where_clause}"
 
-    cursor.execute(query, tuple(conditions.values()))
+    cursor.execute(query, tuple(values))
 
     token = cursor.fetchone()
 
@@ -80,16 +93,17 @@ def get_token_by(**conditions):
 
     return token
 
-def update_token_by_id(token):
+
+def update_token_by_id(token_id, token):
     connection = get_db_connection()
     cursor = connection.cursor()
 
     query = """
     UPDATE Token 
-    SET token = %s, employee_id = %s, created_date = %s, expired_date = %s 
+    SET token = %s, employee_id = %s, is_approved = %s, expired_date = %s
     WHERE token_id = %s
     """
-    cursor.execute(query, (token['token'], token['employee_id'], token['created_date'], token['expired_date'], token['token_id']))
+    cursor.execute(query, (token['token'], token['employee_id'], token['is_approved'], token['expired_date'], token_id))
     connection.commit()
 
     cursor.close()

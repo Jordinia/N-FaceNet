@@ -15,11 +15,11 @@ def get_db_connection():
 | Field        | Type       | Null | Key | Default | Extra          |
 +--------------+------------+------+-----+---------+----------------+
 | detection_id | int        | NO   | PRI | NULL    | auto_increment |
-| camera_id    | tinyint    | YES  |     | NULL    |                |
-| employee_id  | int        | YES  |     | NULL    |                |
-| room_id      | tinyint    | YES  |     | NULL    |                |
-| timestamp    | datetime   | YES  |     | NULL    |                |
-| confidence   | float(9,6) | YES  |     | NULL    |                |
+| camera_id    | tinyint    | NO   |     | NULL    |                |
+| employee_id  | int        | NO   |     | NULL    |                |
+| room_id      | tinyint    | NO   |     | NULL    |                |
+| timestamp    | datetime   | NO   |     | NULL    |                |
+| confidence   | float(9,6) | NO   |     | NULL    |                |
 +--------------+------------+------+-----+---------+----------------+
 """
 

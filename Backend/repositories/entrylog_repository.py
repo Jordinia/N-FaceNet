@@ -68,7 +68,7 @@ def get_entry_by(**conditions):
     cursor = connection.cursor(dictionary=True)
 
     where_clause = " AND ".join([f"{column} = %s" for column in conditions.keys()])
-    query = f"SELECT * FROM EntryLog WHERE {where_clause}"
+    query = f"SELECT * FROM EntryLog WHERE {where_clause} ORDER BY entry_id DESC LIMIT 1"
 
     cursor.execute(query, tuple(conditions.values()))
 

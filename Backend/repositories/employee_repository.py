@@ -11,22 +11,28 @@ def get_db_connection():
     )
 
 """
-+-----------------+------------+------+-----+---------+----------------+
-| Field           | Type       | Null | Key | Default | Extra          |
-+-----------------+------------+------+-----+---------+----------------+
-| employee_id     | int        | NO   | PRI | NULL    | auto_increment |
-| current_room_id | int        | YES  |     | NULL    |                |
-| gender          | tinyint(1) | YES  |     | NULL    |                |
-| age             | int        | YES  |     | NULL    |                |
-| top_color_id    | tinyint    | YES  |     | NULL    |                |
-| bottom_color_id | tinyint    | YES  |     | NULL    |                |
-+-----------------+------------+------+-----+---------+----------------+
++-----------------+--------------+------+-----+---------+----------------+
+| Field           | Type         | Null | Key | Default | Extra          |
++-----------------+--------------+------+-----+---------+----------------+
+| employee_id     | int          | NO   | PRI | NULL    | auto_increment |
+| current_room_id | int          | YES  |     | NULL    |                |
+| gender          | tinyint(1)   | YES  |     | NULL    |                |
+| age             | int          | YES  |     | NULL    |                |
+| top_color_id    | tinyint      | YES  |     | NULL    |                |
+| bottom_color_id | tinyint      | YES  |     | NULL    |                |
+| name            | varchar(255) | YES  |     | NULL    |                |
+| role_id         | tinyint      | YES  |     | NULL    |                |
+| nik             | varchar(10)  | YES  |     | NULL    |                |
++-----------------+--------------+------+-----+---------+----------------+
 """
 
 def create_employee(employee_data):
     connection = get_db_connection()
     cursor = connection.cursor()
 
+    nik = employee_data['nik']
+    name = employee_data['name']
+    role_id = employee_data['role_id']
     current_room_id = employee_data['current_room_id']
     gender = employee_data['gender']
     age = employee_data['age']
@@ -34,10 +40,10 @@ def create_employee(employee_data):
     bottom_color_id = employee_data['bottom_color_id']
 
     query = """
-    INSERT INTO Employee (current_room_id, gender, age, top_color_id, bottom_color_id) 
-    VALUES (%s, %s, %s, %s, %s)
+    INSERT INTO Employee (nik, name, role_id, current_room_id, gender, age, top_color_id, bottom_color_id) 
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
     """
-    cursor.execute(query, (current_room_id, gender, age, top_color_id, bottom_color_id))
+    cursor.execute(query, (nik, name, role_id, current_room_id, gender, age, top_color_id, bottom_color_id))
     connection.commit()
 
     employee_id = cursor.lastrowid
@@ -87,22 +93,26 @@ def get_employee_by(**conditions):
 
     return employee
 
-def update_employee_by_id(employee_id, employee_data):
+def update_employee_by_id(employee_id, employee):
     connection = get_db_connection()
     cursor = connection.cursor()
     
-    current_room_id = employee_data['current_room_id']
-    gender = employee_data['gender']
-    age = employee_data['age']
-    top_color_id = employee_data['top_color_id']
-    bottom_color_id = employee_data['bottom_color_id']
+    nik = employee['nik']
+    name = employee['name']
+    role_id = employee['role_id']
+    current_room_id = employee['current_room_id']
+    gender = employee['gender']
+    age = employee['age']
+    top_color_id = employee['top_color_id']
+    bottom_color_id = employee['bottom_color_id']
+    face_path = employee['face_path']
 
     query = """
     UPDATE Employee 
-    SET current_room_id = %s, gender = %s, age = %s, top_color_id = %s, bottom_color_id = %s
+    SET nik = %s, name = %s, role_id = %s, current_room_id = %s, gender = %s, age = %s, top_color_id = %s, bottom_color_id = %s, face_path = %s
     WHERE employee_id = %s
     """
-    cursor.execute(query, (current_room_id, gender, age, top_color_id, bottom_color_id, employee_id))
+    cursor.execute(query, (nik, name, role_id, current_room_id, gender, age, top_color_id, bottom_color_id, face_path, employee_id))
     connection.commit()
 
     cursor.close()
