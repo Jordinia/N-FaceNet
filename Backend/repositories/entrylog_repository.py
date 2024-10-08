@@ -22,92 +22,160 @@ def get_db_connection():
 """
 
 def create_entry(entry):
-    connection = get_db_connection()
-    cursor = connection.cursor()
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor()
 
-    query = """
-    INSERT INTO EntryLog (employee_id, checkin_time, checkout_time) 
-    VALUES (%s, %s, %s)
-    """
-    cursor.execute(query, (entry['employee_id'], entry['checkin_time'], entry['checkout_time']))
-    connection.commit()
+        query = """
+        INSERT INTO EntryLog (employee_id, checkin_time, checkout_time) 
+        VALUES (%s, %s, %s)
+        """
+        cursor.execute(query, (entry['employee_id'], entry['checkin_time'], entry['checkout_time']))
+        connection.commit()
 
-    entry_id = cursor.lastrowid
+        entry_id = cursor.lastrowid
 
-    cursor.close()
-    connection.close()
-
-    return {"message": "Entry created successfully!", "entry_id": entry_id}
+        return {"status": "success","entry_id": entry_id, "message": "Entry created successfully!"}
+    
+    except ValueError as ve:
+        return {"status": "error", "message": str(ve)}
+    
+    except Exception as e:
+        # Catch any other unforeseen errors, like DB connection issues, SQL errors
+        return {"status": "error", "message": f"Database error: {str(e)}"}
+    
+    finally:
+        cursor.close()
+        connection.close()
 
 def get_entries():
-    connection = get_db_connection()
-    cursor = connection.cursor(dictionary=True)
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor(dictionary=True)
 
-    cursor.execute("SELECT * FROM EntryLog")
-    entries = cursor.fetchall()
+        cursor.execute("SELECT * FROM EntryLog")
+        entries = cursor.fetchall()
 
-    cursor.close()
-    connection.close()
-
-    return entries
+        return {"data": entries, "status": "success"}
+    
+    except ValueError as ve:
+        return {"status": "error", "message": str(ve)}
+    
+    except Exception as e:
+        # Catch any other unforeseen errors, like DB connection issues, SQL errors
+        return {"status": "error", "message": f"Database error: {str(e)}"}
+    
+    finally:
+        cursor.close()
+        connection.close()
 
 def get_entry_by_id(entry_id):
-    connection = get_db_connection()
-    cursor = connection.cursor(dictionary=True)
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor(dictionary=True)
 
-    cursor.execute("SELECT * FROM EntryLog WHERE entry_id = %s", (entry_id,))
-    entry = cursor.fetchone()
+        cursor.execute("SELECT * FROM EntryLog WHERE entry_id = %s", (entry_id,))
+        entry = cursor.fetchone()
 
-    cursor.close()
-    connection.close()
-
-    return entry
+        return {"data": entry, "status": "success"}
+    
+    except ValueError as ve:
+        return {"status": "error", "message": str(ve)}
+    
+    except Exception as e:
+        return {"status": "error", "message": f"Database error: {str(e)}"}
+    
+    finally:
+        cursor.close()
+        connection.close()
 
 def get_entry_by(**conditions):
-    connection = get_db_connection()
-    cursor = connection.cursor(dictionary=True)
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor(dictionary=True)
 
-    where_clause = " AND ".join([f"{column} = %s" for column in conditions.keys()])
-    query = f"SELECT * FROM EntryLog WHERE {where_clause} ORDER BY entry_id DESC LIMIT 1"
+        where_clauses = []
+        values = []
 
-    cursor.execute(query, tuple(conditions.values()))
+        for column, condition in conditions.items():
+            if isinstance(condition, tuple):
+                operator, value = condition
+                if operator in ["IS", "IS NOT"] and value is None:
+                    # For IS NULL or IS NOT NULL, no placeholder is needed
+                    where_clauses.append(f"{column} {operator} NULL")
+                else:
+                    where_clauses.append(f"{column} {operator} %s")
+                    values.append(value)
+            else:
+                # Default to equality
+                where_clauses.append(f"{column} = %s")
+                values.append(condition)
 
-    entry = cursor.fetchone()
+        where_clause = " AND ".join(where_clauses)
+        query = f"SELECT * FROM EntryLog WHERE {where_clause}"
 
-    cursor.close()
-    connection.close()
+        cursor.execute(query, tuple(values))
+        entry = cursor.fetchall()
 
-    return entry
+        if len(entry) == 1:
+            entry = entry[0]
+
+        if entry == []:
+            entry = None
+
+        return {"data": entry, "status": "success"}
+    
+    except ValueError as ve:
+        return {"status": "error", "message": str(ve)}
+    
+    except Exception as e:
+        return {"status": "error", "message": f"Database error: {str(e)}"}
+    
+    finally:
+        cursor.close()
+        connection.close()
 
 def update_entry_by_id(entry):
-    connection = get_db_connection()
-    cursor = connection.cursor()
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor()
 
-    query = """
-    UPDATE EntryLog 
-    SET employee_id = %s, checkin_time = %s, checkout_time = %s 
-    WHERE entry_id = %s
-    """
-    cursor.execute(query, (entry['employee_id'], entry['checkin_time'], entry['checkout_time'], entry['entry_id']))
-    connection.commit()
+        query = """
+        UPDATE EntryLog 
+        SET employee_id = %s, checkin_time = %s, checkout_time = %s 
+        WHERE entry_id = %s
+        """
+        cursor.execute(query, (entry['employee_id'], entry['checkin_time'], entry['checkout_time'], entry['entry_id']))
+        connection.commit()
 
-    cursor.close()
-    connection.close()
-
-    if cursor.rowcount == 0:
-        return {"status": "error", "message": "Nothing changed"}
-    return {"status": "success", "message": "Entry updated successfully!"}
+        return {"status": "success", "message": "Entry updated successfully!"}
+    
+    except ValueError as ve:
+        return {"status": "error", "message": str(ve)}
+    
+    except Exception as e:
+        return {"status": "error", "message": f"Database error: {str(e)}"}
+    
+    finally:
+        cursor.close()
+        connection.close()
 
 def delete_entry_by_id(entry_id):
-    connection = get_db_connection()
-    cursor = connection.cursor()
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor()
 
-    cursor.execute("DELETE FROM EntryLog WHERE entry_id = %s", (entry_id,))
-    connection.commit()
+        cursor.execute("DELETE FROM EntryLog WHERE entry_id = %s", (entry_id,))
+        connection.commit()
 
-    cursor.close()
-    connection.close()
-
-    if cursor.rowcount == 0:
-        return {"status": "error", "message": "Nothing changed"}
-    return {"status": "success", "message": "Entry deleted successfully!"}
+        return {"status": "success", "message": "Entry deleted successfully!"}
+    
+    except ValueError as ve:
+        return {"status": "error", "message": str(ve)}
+    
+    except Exception as e:
+        return {"status": "error", "message": f"Database error: {str(e)}"}
+    
+    finally:
+        cursor.close()
+        connection.close()

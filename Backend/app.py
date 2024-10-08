@@ -30,35 +30,34 @@ def create_response(result):
 entry_bp = Blueprint('entry', __name__)
 detection_bp = Blueprint('detection', __name__)
 employee_bp = Blueprint('employee', __name__)
-token_bp = Blueprint('registrationToken', __name__)
+token_bp = Blueprint('token', __name__)
 
 class EntryAPI(MethodView):
-    def post(self):
+    def post(self, employee_id):
         data = request.json
-        result = entrylog_service.checkin(data)
+        result = entrylog_service.checkin(employee_id, data)
         return jsonify(create_response(result)), 201 if result['status'] == 'success' else 400
 
-    def put(self):
-        data = request.json
-        result = entrylog_service.checkout(data)
+    def put(self, employee_id):
+        result = entrylog_service.checkout(employee_id)
         return jsonify(create_response(result)), 201 if result['status'] == 'success' else 400
 
     def get(self, entry_id=None):
         if entry_id is None:
             result = entrylog_service.get_entries()
-            return jsonify(result), 200
+            return jsonify(create_response(result)), 200 if result['status'] == 'success' else 400
         else:
             result = entrylog_service.get_entry(entry_id)
-            return jsonify(result), 200 if result else 404
+            return jsonify(create_response(result)), 200 if result['status'] == 'success' else 400
         
     def delete(self, entry_id):
         result = entrylog_service.delete_entry(entry_id)
-        return jsonify(result), 201 if result['status'] == 'success' else 400
+        return jsonify(create_response(result)), 201 if result['status'] == 'success' else 400
 
 class DetectionAPI(MethodView):
-    def post(self):
+    def post(self, employee_id):
         data = request.json
-        result = detectionlog_service.create_detection(data)
+        result = detectionlog_service.create_detection(employee_id, data)
         return jsonify(create_response(result)), 201 if result['status'] == 'success' else 400
 
     def put(self, detection_id):
@@ -69,14 +68,14 @@ class DetectionAPI(MethodView):
     def get(self, detection_id=None):
         if detection_id is None:
             result = detectionlog_service.get_detections()
-            return jsonify(result), 200
+            return jsonify(create_response(result)), 200
         else:
             result = detectionlog_service.get_detection(detection_id)
-            return jsonify(result), 200 if result else 404
+            return jsonify(create_response(result)), 200 if result else 404
         
     def delete(self, detection_id):
         result = detectionlog_service.delete_detection(detection_id)
-        return jsonify(result), 201 if result['status'] == 'success' else 400
+        return jsonify(create_response(result)), 201 if result['status'] == 'success' else 400
 
 class EmployeeAPI(MethodView):
     def post(self):
@@ -84,10 +83,14 @@ class EmployeeAPI(MethodView):
         result = employee_service.create_employee(data)
         return jsonify(create_response(result)), 201 if result['status'] == 'success' else 400
 
-    def put(self, token):
+    def put(self, token=None, employee_id=None):
         data = request.json
-        result = employee_service.register_employee_face(token, data)
-        return jsonify(create_response(result)), 201 if result['status'] == 'success' else 400
+        if employee_id is None:
+            result = employee_service.register_employee_face(token, data)
+            return jsonify(create_response(result)), 201 if result['status'] == 'success' else 400
+        else:
+            result = employee_service.update_employee(employee_id, data)
+            return jsonify(create_response(result)), 201 if result['status'] == 'success' else 400
 
     def get(self, employee_id=None):
         if employee_id is None:
@@ -102,9 +105,8 @@ class EmployeeAPI(MethodView):
         return jsonify(result), 201 if result['status'] == 'success' else 400
 
 class TokenAPI(MethodView):
-    def post(self):
-        data = request.json
-        result = token_service.create_token(data)
+    def post(self, employee_id):
+        result = token_service.create_token(employee_id)
         return jsonify(create_response(result)), 201 if result['status'] == 'success' else 400
 
     def put(self, token_id):
@@ -125,27 +127,29 @@ class TokenAPI(MethodView):
 
 # Register the EntryAPI view
 entry_view = EntryAPI.as_view('entry_api')
-entry_bp.add_url_rule('/checkin', view_func=entry_view, methods=['POST'])
-entry_bp.add_url_rule('/checkout', view_func=entry_view, methods=['PUT'])
+entry_bp.add_url_rule('/checkin/<int:employee_id>', view_func=entry_view, methods=['POST'])
+entry_bp.add_url_rule('/checkout/<int:employee_id>', view_func=entry_view, methods=['PUT'])
 entry_bp.add_url_rule('', view_func=entry_view, methods=['POST', 'GET'])
 entry_bp.add_url_rule('/<int:entry_id>', view_func=entry_view, methods=['GET', 'PUT', 'DELETE'])
 
 # Register the DetectionAPI view
 detection_view = DetectionAPI.as_view('detection_api')
-detection_bp.add_url_rule('', view_func=detection_view, methods=['POST', 'GET'])
+detection_bp.add_url_rule('', view_func=detection_view, methods=['GET'])
 detection_bp.add_url_rule('/<int:detection_id>', view_func=detection_view, methods=['GET', 'PUT', 'DELETE'])
 detection_bp.add_url_rule('/employee/<int:employee_id>', view_func=detection_view, methods=['GET'])
+detection_bp.add_url_rule('/employee/<int:employee_id>', view_func=detection_view, methods=['POST'])
 
 # Register the EmployeeAPI view
 employee_view = EmployeeAPI.as_view('employee_api')
 employee_bp.add_url_rule('', view_func=employee_view, methods=['POST', 'GET'])
 employee_bp.add_url_rule('/<int:employee_id>', view_func=employee_view, methods=['GET', 'DELETE'])
-employee_bp.add_url_rule('/<string:token>', view_func=employee_view, methods=['PUT'])
-employee_bp.add_url_rule('/employee/<int:employee_id>', view_func=employee_view, methods=['GET'])
+employee_bp.add_url_rule('/<int:employee_id>', view_func=employee_view, methods=['PUT'])
+employee_bp.add_url_rule('/token/<string:token>', view_func=employee_view, methods=['PUT'])
 
 # Register the TokenAPI view
 token_view = TokenAPI.as_view('token_api')
-token_bp.add_url_rule('', view_func=token_view, methods=['POST', 'GET'])
+token_bp.add_url_rule('', view_func=token_view, methods=['GET'])
+token_bp.add_url_rule('/<int:employee_id>', view_func=token_view, methods=['POST'])
 token_bp.add_url_rule('/<int:token_id>', view_func=token_view, methods=['GET', 'PUT', 'DELETE'])
 token_bp.add_url_rule('/token/<int:token_id>', view_func=token_view, methods=['GET'])
 

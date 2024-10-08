@@ -6,7 +6,7 @@ def create_employee(data):
     try:
         conditions = {"nik": data['nik']}
         existing_employee = employee_repository.get_employee_by(**conditions)
-        if existing_employee:
+        if existing_employee['data']:
             return {"data": None, "status": "error", "message": "Duplicate NIK"}
 
         employee_data = {
@@ -27,73 +27,87 @@ def create_employee(data):
 
         token = token_service.create_token(result['employee_id'])
 
-        return {"data": employee_data, "authentication": token['data'], "status": "success", "message": "Employee created successfully!"}
+        return {"data": employee_data, "authentication": token['data'], "status": "success", "message": result['message']}
     except KeyError:
         return {"data": None, "status": "error", "message": "Invalid data"}
 
 def get_employees():
 
-    employees = employee_repository.get_employees()
-    return {"count": len(employees), "data": employees, "status": "success"}
+    try:
+        employees = employee_repository.get_employees()
+        
+        return {"count": len(employees['data']), "data": employees['data'], "status": "success"}
+    
+    except:
+        return {"data": None, "status": "error", "message": "Employee not Found"}
 
 # Retrieve a specific employee
 def get_employee(employee_id):
 
     try:
         employee = employee_repository.get_employee_by_id(employee_id)
-    except:
-        return {"data": None, "status": "error", "message": "Employee not Found"}
+        if employee['data'] == None:
+            return {"data": None, "status": "error", "message": "Employee not Found"}
 
-    return {"data": employee, "status": "success"}
+        return {"data": employee['data'], "status": "success"}
+    except:
+        return {"data": None, "status": "error", "message": "Get employee failed"}
 
 # Update an employee
 def update_employee(employee_id, data):
     
-    try:        
-        employee_data = {
-            "current_room_id" : data['current_room_id'],
-            "top_color_id" : data['top_color_id'],
-            "bottom_color_id" : data['bottom_color_id'],
-            "gender" : data['gender'],
-            "name" : data['name'],
-            "nik" : data['nik'],
-            "role_id" : data['role_id'],
-            "face_path" : data['face_path'],
-            "age" : data['age']
-        }
-    
-        result = employee_repository.update_employee_by_id(employee_id, employee_data)
+    try:     
+        existing_employee = employee_repository.get_employee_by_id(employee_id)
+        if existing_employee['data'] == None:
+            return {"data": None, "status": "error", "message": existing_employee['message']}
 
-        return {"data": employee_data, "status": "success", "message": result["message"]}
+        employee_data = {
+            "current_room_id": data['current_room_id'] if data.get('current_room_id') else existing_employee['current_room_id'],
+            "top_color_id": data['top_color_id'] if data.get('top_color_id') else existing_employee['top_color_id'],
+            "bottom_color_id": data['bottom_color_id'] if data.get('bottom_color_id') else existing_employee['bottom_color_id'],
+            "gender": data['gender'] if data.get('gender') else existing_employee['gender'],
+            "name": data['name'] if data.get('name') else existing_employee['name'],
+            "nik": data['nik'] if data.get('nik') else existing_employee['nik'],
+            "role_id": data['role_id'] if data.get('role_id') else existing_employee['role_id'],
+            "face_path": data['face_path'] if data.get('face_path') else existing_employee['face_path'],
+            "age": data['age'] if data.get('age') else existing_employee['age']
+        }
+
+        result = employee_repository.update_employee_by_id(employee_id, employee_data)
+        updated_employee = employee_repository.get_employee_by_id(employee_id)
+
+        return {"data": updated_employee['data'], "status": "success", "message": result["message"]}
     except KeyError:
         return {"data": None, "status": "error", "message": "Invalid data"}
     
 def update_employee_detection(employee_id, data):
     try:        
-        employee_existing = employee_repository.get_employee_by_id(employee_id)
-        if employee_existing == None:
+        existing_employee = employee_repository.get_employee_by_id(employee_id)
+        if existing_employee['data'] == None:
             return {"status": "error", "message": "Employee not found"}
+
+        existing_employee_data = existing_employee['data']
 
         employee = {
             "current_room_id" : data['current_room_id'],
             "top_color_id" : data['top_color_id'],
             "bottom_color_id" : data['bottom_color_id'],
-            "gender" : employee_existing['gender'],
-            "name" : employee_existing['name'],
-            "nik" : employee_existing['nik'],
-            "role_id" : employee_existing['role_id'],
-            "age" : employee_existing['age'],
-            "face_path" : employee_existing['face_path']
+            "gender" : existing_employee_data['gender'],
+            "name" : existing_employee_data['name'],
+            "nik" : existing_employee_data['nik'],
+            "role_id" : existing_employee_data['role_id'],
+            "age" : existing_employee_data['age'],
+            "face_path" : existing_employee_data['face_path']
         }
     
         result = employee_repository.update_employee_by_id(employee_id, employee)
+        updated_employee = employee_repository.get_employee_by_id(employee_id)
 
-        return {"data": employee, "status": "success", "message": result["message"]}
+        return {"data": updated_employee['data'], "status": "success", "message": result["message"]}
     except KeyError:
         return {"data": None, "status": "error", "message": "Invalid data"}
     
 def register_employee_face(token, data):
-    
     try:
         registration_token = token_service.use_token(token)
         if registration_token['status'] == "error":
@@ -102,26 +116,29 @@ def register_employee_face(token, data):
         registration_token_data = registration_token['data']
 
         employee_existing = employee_repository.get_employee_by_id(registration_token_data['employee_id'])
-        if employee_existing == None:
+        if employee_existing['data'] == None:
             return {"status": "error", "message": "Employee not found"}
+
+        employee_existing_data = employee_existing['data']
 
         employee = {
             "face_path" : data['face_path'],
-            "current_room_id" : employee_existing['current_room_id'],
-            "top_color_id" : employee_existing['top_color_id'],
-            "bottom_color_id" : employee_existing['bottom_color_id'],
-            "gender" : employee_existing['gender'],
-            "name" : employee_existing['name'],
-            "nik" : employee_existing['nik'],
-            "role_id" : employee_existing['role_id'],
-            "age" : employee_existing['age']
+            "current_room_id" : employee_existing_data['current_room_id'],
+            "top_color_id" : employee_existing_data['top_color_id'],
+            "bottom_color_id" : employee_existing_data['bottom_color_id'],
+            "gender" : employee_existing_data['gender'],
+            "name" : employee_existing_data['name'],
+            "nik" : employee_existing_data['nik'],
+            "role_id" : employee_existing_data['role_id'],
+            "age" : employee_existing_data['age']
         }
     
         result = employee_repository.update_employee_by_id(registration_token_data['employee_id'], employee)
+        updated_employee = employee_repository.get_employee_by_id(employee_existing_data['employee_id'])
 
-        return {"data": employee, "status": "success", "message": result["message"]}
+        return {"data": updated_employee['data'], "status": "success", "message": "Face registered succesfully"}
     except KeyError:
-        return {"status": "error", "message": "Invalid data"}
+        return {"data": registration_token, "status": "error", "message": "Register Employee Face Failed"}
 
 # Delete an employee
 def delete_employee(employee_id):

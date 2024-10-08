@@ -27,111 +27,185 @@ def get_db_connection():
 """
 
 def create_employee(employee_data):
-    connection = get_db_connection()
-    cursor = connection.cursor()
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor()
 
-    nik = employee_data['nik']
-    name = employee_data['name']
-    role_id = employee_data['role_id']
-    current_room_id = employee_data['current_room_id']
-    gender = employee_data['gender']
-    age = employee_data['age']
-    top_color_id = employee_data['top_color_id']
-    bottom_color_id = employee_data['bottom_color_id']
+        nik = employee_data['nik']
+        name = employee_data['name']
+        role_id = employee_data['role_id']
+        current_room_id = employee_data['current_room_id']
+        gender = employee_data['gender']
+        age = employee_data['age']
+        top_color_id = employee_data['top_color_id']
+        bottom_color_id = employee_data['bottom_color_id']
 
-    query = """
-    INSERT INTO Employee (nik, name, role_id, current_room_id, gender, age, top_color_id, bottom_color_id) 
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-    """
-    cursor.execute(query, (nik, name, role_id, current_room_id, gender, age, top_color_id, bottom_color_id))
-    connection.commit()
+        query = """
+        INSERT INTO Employee (nik, name, role_id, current_room_id, gender, age, top_color_id, bottom_color_id) 
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        """
+        cursor.execute(query, (nik, name, role_id, current_room_id, gender, age, top_color_id, bottom_color_id))
+        connection.commit()
 
-    employee_id = cursor.lastrowid
+        employee_id = cursor.lastrowid
 
-    cursor.close()
-    connection.close()
+        return {"status": "success","employee_id": employee_id, "message": "Employee created successfully!"}
+    
+    except ValueError as ve:
+        return {"status": "error", "message": str(ve)}
+    
+    except Exception as e:
+        # Catch any other unforeseen errors, like DB connection issues, SQL errors
+        return {"status": "error", "message": f"Database error: {str(e)}"}
+    
+    finally:
+        cursor.close()
+        connection.close()
 
-    return {"employee_id": employee_id}
+
 
 def get_employees():
-    connection = get_db_connection()
-    cursor = connection.cursor(dictionary=True)
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor(dictionary=True)
 
-    cursor.execute("SELECT * FROM Employee")
-    employees = cursor.fetchall()
+        cursor.execute("SELECT * FROM Employee")
+        employees = cursor.fetchall()
 
-    cursor.close()
-    connection.close()
-
-    return employees
+        return {"data": employees, "status": "success"}
+    
+    except ValueError as ve:
+        return {"status": "error", "message": str(ve)}
+    
+    except Exception as e:
+        # Catch any other unforeseen errors, like DB connection issues, SQL errors
+        return {"status": "error", "message": f"Database error: {str(e)}"}
+    
+    finally:
+        cursor.close()
+        connection.close()
 
 def get_employee_by_id(employee_id):
-    connection = get_db_connection()
-    cursor = connection.cursor(dictionary=True)
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor(dictionary=True)
 
-    cursor.execute("SELECT * FROM Employee WHERE employee_id = %s", (employee_id,))
-    employee = cursor.fetchone()
+        cursor.execute("SELECT * FROM Employee WHERE employee_id = %s", (employee_id,))
+        employee = cursor.fetchone()
 
-    cursor.close()
-    connection.close()
-
-    return employee
+        return {"data": employee, "status": "success"}
+    
+    except ValueError as ve:
+        return {"status": "error", "message": str(ve)}
+    
+    except Exception as e:
+        # Catch any other unforeseen errors, like DB connection issues, SQL errors
+        return {"status": "error", "message": f"Database error: {str(e)}"}
+    
+    finally:
+        cursor.close()
+        connection.close()
 
 def get_employee_by(**conditions):
-    connection = get_db_connection()
-    cursor = connection.cursor(dictionary=True)
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor(dictionary=True)
 
-    where_clause = " AND ".join([f"{column} = %s" for column in conditions.keys()])
-    query = f"SELECT * FROM Employee WHERE {where_clause}"
+        where_clauses = []
+        values = []
 
-    cursor.execute(query, tuple(conditions.values()))
+        for column, condition in conditions.items():
+            if isinstance(condition, tuple):
+                operator, value = condition
+                if operator in ["IS", "IS NOT"] and value is None:
+                    # For IS NULL or IS NOT NULL, no placeholder is needed
+                    where_clauses.append(f"{column} {operator} NULL")
+                else:
+                    where_clauses.append(f"{column} {operator} %s")
+                    values.append(value)
+            else:
+                # Default to equality
+                where_clauses.append(f"{column} = %s")
+                values.append(condition)
 
-    employee = cursor.fetchone()
+        where_clause = " AND ".join(where_clauses)
+        query = f"SELECT * FROM Employee WHERE {where_clause}"
 
-    cursor.close()
-    connection.close()
+        cursor.execute(query, tuple(values))
+        employee = cursor.fetchall()
 
-    return employee
+        if len(employee) == 1:
+            employee = employee[0]
+
+        if employee == []:
+            employee = None
+
+        return {"data": employee, "status": "success"}
+    
+    except ValueError as ve:
+        return {"status": "error", "message": str(ve)}
+    
+    except Exception as e:
+        # Catch any other unforeseen errors, like DB connection issues, SQL errors
+        return {"status": "error", "message": f"Database error: {str(e)}"}
+    
+    finally:
+        cursor.close()
+        connection.close()
 
 def update_employee_by_id(employee_id, employee):
-    connection = get_db_connection()
-    cursor = connection.cursor()
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        
+        nik = employee['nik']
+        name = employee['name']
+        role_id = employee['role_id']
+        current_room_id = employee['current_room_id']
+        gender = employee['gender']
+        age = employee['age']
+        top_color_id = employee['top_color_id']
+        bottom_color_id = employee['bottom_color_id']
+        face_path = employee['face_path']
+
+        query = """
+        UPDATE Employee 
+        SET nik = %s, name = %s, role_id = %s, current_room_id = %s, gender = %s, age = %s, top_color_id = %s, bottom_color_id = %s, face_path = %s
+        WHERE employee_id = %s
+        """
+        cursor.execute(query, (nik, name, role_id, current_room_id, gender, age, top_color_id, bottom_color_id, face_path, employee_id))
+        connection.commit()
+
+        return {"status": "success", "message": "Employee updated successfully!"}
     
-    nik = employee['nik']
-    name = employee['name']
-    role_id = employee['role_id']
-    current_room_id = employee['current_room_id']
-    gender = employee['gender']
-    age = employee['age']
-    top_color_id = employee['top_color_id']
-    bottom_color_id = employee['bottom_color_id']
-    face_path = employee['face_path']
-
-    query = """
-    UPDATE Employee 
-    SET nik = %s, name = %s, role_id = %s, current_room_id = %s, gender = %s, age = %s, top_color_id = %s, bottom_color_id = %s, face_path = %s
-    WHERE employee_id = %s
-    """
-    cursor.execute(query, (nik, name, role_id, current_room_id, gender, age, top_color_id, bottom_color_id, face_path, employee_id))
-    connection.commit()
-
-    cursor.close()
-    connection.close()
-
-    if cursor.rowcount == 0:
-        return {"status": "error", "message": "Nothing changed"}
-    return {"status": "success", "message": "Employee updated successfully!"}
+    except ValueError as ve:
+        return {"status": "error", "message": str(ve)}
+    
+    except Exception as e:
+        # Catch any other unforeseen errors, like DB connection issues, SQL errors
+        return {"status": "error", "message": f"Database error: {str(e)}"}
+    
+    finally:
+        cursor.close()
+        connection.close()
 
 def delete_employee_by_id(employee_id):
-    connection = get_db_connection()
-    cursor = connection.cursor()
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor()
 
-    cursor.execute("DELETE FROM Employee WHERE employee_id = %s", (employee_id,))
-    connection.commit()
+        cursor.execute("DELETE FROM Employee WHERE employee_id = %s", (employee_id,))
+        connection.commit()
 
-    cursor.close()
-    connection.close()
-
-    if cursor.rowcount == 0:
-        return {"status": "error", "message": "Nothing changed"}
-    return {"status": "success", "message": "Employee deleted successfully!"}
+        return {"status": "success", "message": "Employee deleted successfully!"}
+    
+    except ValueError as ve:
+        return {"status": "error", "message": str(ve)}
+    
+    except Exception as e:
+        # Catch any other unforeseen errors, like DB connection issues, SQL errors
+        return {"status": "error", "message": f"Database error: {str(e)}"}
+    
+    finally:
+        cursor.close()
+        connection.close()

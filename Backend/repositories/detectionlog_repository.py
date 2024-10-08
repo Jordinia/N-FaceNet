@@ -23,105 +23,170 @@ def get_db_connection():
 +--------------+------------+------+-----+---------+----------------+
 """
 
-# Create a new detection in the DetectionLog table
 def create_detection(detection_data):
-    connection = get_db_connection()
-    cursor = connection.cursor()
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor()
 
-    camera_id = detection_data['camera_id']
-    employee_id = detection_data['employee_id']
-    room_id = detection_data['room_id']
-    timestamp = detection_data['timestamp']
-    confidence = detection_data['confidence']
+        camera_id = detection_data['camera_id']
+        employee_id = detection_data['employee_id']
+        room_id = detection_data['room_id']
+        timestamp = detection_data['timestamp']
+        confidence = detection_data['confidence']
 
-    query = """
-    INSERT INTO DetectionLog (camera_id, employee_id, room_id, timestamp, confidence) 
-    VALUES (%s, %s, %s, %s, %s)
-    """
-    cursor.execute(query, (camera_id, employee_id, room_id, timestamp, confidence))
-    connection.commit()
+        query = """
+        INSERT INTO DetectionLog (camera_id, employee_id, room_id, timestamp, confidence) 
+        VALUES (%s, %s, %s, %s, %s)
+        """
+        cursor.execute(query, (camera_id, employee_id, room_id, timestamp, confidence))
+        connection.commit()
 
-    detection_id = cursor.lastrowid
+        detection_id = cursor.lastrowid
 
-    cursor.close()
-    connection.close()
-
-    return {"message": "Detection created successfully!", "detection_id": detection_id}
+        return {"status": "success", "message": "Detection created successfully!", "detection_id": detection_id}
+    
+    except ValueError as ve:
+        return {"status": "error", "message": str(ve)}
+    
+    except Exception as e:
+        return {"status": "error", "message": f"Database error: {str(e)}"}
+    
+    finally:
+        cursor.close()
+        connection.close()
 
 def get_detections():
-    connection = get_db_connection()
-    cursor = connection.cursor(dictionary=True)
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor(dictionary=True)
 
-    cursor.execute("SELECT * FROM DetectionLog")
-    detections = cursor.fetchall()
+        cursor.execute("SELECT * FROM DetectionLog")
+        detections = cursor.fetchall()
 
-    cursor.close()
-    connection.close()
-
-    return detections
+        return {"data": detections, "status": "success"}
+    
+    except ValueError as ve:
+        return {"status": "error", "message": str(ve)}
+    
+    except Exception as e:
+        return {"status": "error", "message": f"Database error: {str(e)}"}
+    
+    finally:
+        cursor.close()
+        connection.close()
 
 def get_detection_by_id(detection_id):
-    connection = get_db_connection()
-    cursor = connection.cursor(dictionary=True)
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor(dictionary=True)
 
-    cursor.execute("SELECT * FROM DetectionLog WHERE detection_id = %s", (detection_id,))
-    detection = cursor.fetchone()
+        cursor.execute("SELECT * FROM DetectionLog WHERE detection_id = %s", (detection_id,))
+        detection = cursor.fetchone()
 
-    cursor.close()
-    connection.close()
+        return {"data": detection, "status": "success"}
 
-    return detection
+    except ValueError as ve:
+        return {"status": "error", "message": str(ve)}
+    
+    except Exception as e:
+        return {"status": "error", "message": f"Database error: {str(e)}"}
+    
+    finally:
+        cursor.close()
+        connection.close()
 
 def get_detection_by(**conditions):
-    connection = get_db_connection()
-    cursor = connection.cursor(dictionary=True)
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor(dictionary=True)
 
-    where_clause = " AND ".join([f"{column} = %s" for column in conditions.keys()])
-    query = f"SELECT * FROM DetectionLog WHERE {where_clause}"
+        where_clauses = []
+        values = []
 
-    cursor.execute(query, tuple(conditions.values()))
+        for column, condition in conditions.items():
+            if isinstance(condition, tuple):
+                operator, value = condition
+                if operator in ["IS", "IS NOT"] and value is None:
+                    # For IS NULL or IS NOT NULL, no placeholder is needed
+                    where_clauses.append(f"{column} {operator} NULL")
+                else:
+                    where_clauses.append(f"{column} {operator} %s")
+                    values.append(value)
+            else:
+                # Default to equality
+                where_clauses.append(f"{column} = %s")
+                values.append(condition)
 
-    detection = cursor.fetchone()
+        where_clause = " AND ".join(where_clauses)
+        query = f"SELECT * FROM EntryLog WHERE {where_clause}"
 
-    cursor.close()
-    connection.close()
+        cursor.execute(query, tuple(values))
+        detection = cursor.fetchall()
 
-    return detection
+        if len(detection) == 1:
+            detection = detection[0]
+
+        if detection == []:
+            detection = None
+
+        return {"data": detection, "status": "success"}
+    
+    except ValueError as ve:
+        return {"status": "error", "message": str(ve)}
+    
+    except Exception as e:
+        return {"status": "error", "message": f"Database error: {str(e)}"}
+    
+    finally:
+        cursor.close()
+        connection.close()
 
 def update_detection_by_id(detection_id, detection_data):
-    connection = get_db_connection()
-    cursor = connection.cursor()
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        
+        camera_id = detection_data['camera_id']
+        employee_id = detection_data['employee_id']
+        room_id = detection_data['room_id']
+        confidence = detection_data['confidence']
+
+        query = """
+        UPDATE DetectionLog 
+        SET camera_id = %s, employee_id = %s, room_id = %s, confidence = %s
+        WHERE detection_id = %s
+        """
+        cursor.execute(query, (camera_id, employee_id, room_id, confidence, detection_id))
+        connection.commit()
+
+        return {"status": "success", "message": "Detection updated successfully!"}
     
-    camera_id = detection_data['camera_id']
-    employee_id = detection_data['employee_id']
-    room_id = detection_data['room_id']
-    confidence = detection_data['confidence']
-
-    query = """
-    UPDATE DetectionLog 
-    SET camera_id = %s, employee_id = %s, room_id = %s, confidence = %s
-    WHERE detection_id = %s
-    """
-    cursor.execute(query, (camera_id, employee_id, room_id, confidence, detection_id))
-    connection.commit()
-
-    cursor.close()
-    connection.close()
-
-    if cursor.rowcount == 0:
-        return {"status": "error", "message": "Nothing changed"}
-    return {"status": "success", "message": "Detection updated successfully!"}
+    except ValueError as ve:
+        return {"status": "error", "message": str(ve)}
+    
+    except Exception as e:
+        return {"status": "error", "message": f"Database error: {str(e)}"}
+    
+    finally:
+        cursor.close()
+        connection.close()
 
 def delete_detection_by_id(detection_id):
-    connection = get_db_connection()
-    cursor = connection.cursor()
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor()
 
-    cursor.execute("DELETE FROM DetectionLog WHERE detection_id = %s", (detection_id,))
-    connection.commit()
+        cursor.execute("DELETE FROM DetectionLog WHERE detection_id = %s", (detection_id,))
+        connection.commit()
 
-    cursor.close()
-    connection.close()
-
-    if cursor.rowcount == 0:
-        return {"status": "error", "message": "Nothing changed"}
-    return {"status": "success", "message": "Detection deleted successfully!"}
+        return {"status": "success", "message": "Detection deleted successfully!"}
+    
+    except ValueError as ve:
+        return {"status": "error", "message": str(ve)}
+    
+    except Exception as e:
+        return {"status": "error", "message": f"Database error: {str(e)}"}
+    
+    finally:
+        cursor.close()
+        connection.close()

@@ -23,92 +23,161 @@ def get_db_connection():
 """
 
 def create_token(token):
-    connection = get_db_connection()
-    cursor = connection.cursor()
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor()
 
-    query = """
-    INSERT INTO RegistrationToken (token, employee_id, created_date, expired_date) 
-    VALUES (%s, %s, %s, %s)
-    """
-    cursor.execute(query, (token['token'], token['employee_id'], token['created_date'], token['expired_date']))
-    connection.commit()
+        query = """
+        INSERT INTO Token (token, employee_id, created_date, expired_date) 
+        VALUES (%s, %s, %s, %s)
+        """
+        cursor.execute(query, (token['token'], token['employee_id'], token['created_date'], token['expired_date']))
+        connection.commit()
 
-    token_id = cursor.lastrowid
+        token_id = cursor.lastrowid
 
-    cursor.close()
-    connection.close()
-
-    return {"message": "Token created successfully!", "token_id": token_id}
+        return {"status": "success", "message": "Token created successfully!", "token_id": token_id}
+    
+    except ValueError as ve:
+        return {"status": "error", "message": str(ve)}
+    
+    except Exception as e:
+        return {"status": "error", "message": f"Database error: {str(e)}"}
+    
+    finally:
+        cursor.close()
+        connection.close()
 
 def get_tokens():
-    connection = get_db_connection()
-    cursor = connection.cursor(dictionary=True)
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor(dictionary=True)
 
-    cursor.execute("SELECT * FROM RegistrationToken")
-    tokens = cursor.fetchall()
+        cursor.execute("SELECT * FROM Token")
+        tokens = cursor.fetchall()
 
-    cursor.close()
-    connection.close()
-
-    return tokens
+        return {"data": tokens, "status": "success"}
+    
+    except ValueError as ve:
+        return {"status": "error", "message": str(ve)}
+    
+    except Exception as e:
+        # Catch any other unforeseen errors, like DB connection issues, SQL errors
+        return {"status": "error", "message": f"Database error: {str(e)}"}
+    
+    finally:
+        cursor.close()
+        connection.close()
 
 def get_token_by_id(token_id):
-    connection = get_db_connection()
-    cursor = connection.cursor(dictionary=True)
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor(dictionary=True)
 
-    cursor.execute("SELECT * FROM RegistrationToken WHERE token_id = %s", (token_id,))
-    token = cursor.fetchone()
+        cursor.execute("SELECT * FROM Token WHERE token_id = %s", (token_id,))
+        token = cursor.fetchone()
 
-    cursor.close()
-    connection.close()
-
-    return token
+        return {"data": token, "status": "success"}
+    
+    except ValueError as ve:
+        return {"status": "error", "message": str(ve)}
+    
+    except Exception as e:
+        # Catch any other unforeseen errors, like DB connection issues, SQL errors
+        return {"status": "error", "message": f"Database error: {str(e)}"}
+    
+    finally:
+        cursor.close()
+        connection.close()
 
 def get_token_by(**conditions):
-    connection = get_db_connection()
-    cursor = connection.cursor(dictionary=True)
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor(dictionary=True)
 
-    where_clause = " AND ".join([f"{column} = %s" for column in conditions.keys()])
-    query = f"SELECT * FROM RegistrationToken WHERE {where_clause}"
+        where_clauses = []
+        values = []
 
-    cursor.execute(query, tuple(conditions.values()))
+        for column, condition in conditions.items():
+            if isinstance(condition, tuple):
+                operator, value = condition
+                if operator in ["IS", "IS NOT"] and value is None:
+                    # For IS NULL or IS NOT NULL, no placeholder is needed
+                    where_clauses.append(f"{column} {operator} NULL")
+                else:
+                    where_clauses.append(f"{column} {operator} %s")
+                    values.append(value)
+            else:
+                # Default to equality
+                where_clauses.append(f"{column} = %s")
+                values.append(condition)
 
-    token = cursor.fetchone()
+        where_clause = " AND ".join(where_clauses)
+        query = f"SELECT * FROM Token WHERE {where_clause}"
 
-    cursor.close()
-    connection.close()
+        cursor.execute(query, tuple(values))
+        token = cursor.fetchall()
 
-    return token
+        if len(token) == 1:
+            token = token[0]
+
+        if token == []:
+            token = None
+
+        return {"data": token, "status": "success"}
+    
+    except ValueError as ve:
+        return {"status": "error", "message": str(ve)}
+    
+    except Exception as e:
+        # Catch any other unforeseen errors, like DB connection issues, SQL errors
+        return {"status": "error", "message": f"Database error: {str(e)}"}
+    
+    finally:
+        cursor.close()
+        connection.close()
 
 def update_token_by_id(token):
-    connection = get_db_connection()
-    cursor = connection.cursor()
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor()
 
-    query = """
-    UPDATE RegistrationToken 
-    SET token = %s, employee_id = %s, created_date = %s, expired_date = %s 
-    WHERE token_id = %s
-    """
-    cursor.execute(query, (token['token'], token['employee_id'], token['created_date'], token['expired_date'], token['token_id']))
-    connection.commit()
+        query = """
+        UPDATE Token 
+        SET token = %s, employee_id = %s, created_date = %s, expired_date = %s 
+        WHERE token_id = %s
+        """
+        cursor.execute(query, (token['token'], token['employee_id'], token['created_date'], token['expired_date'], token['token_id']))
+        connection.commit()
 
-    cursor.close()
-    connection.close()
-
-    if cursor.rowcount == 0:
-        return {"status": "error", "message": "Nothing changed"}
-    return {"status": "success", "message": "Token updated successfully!"}
+        return {"status": "success", "message": "Token updated successfully!"}
+    
+    except ValueError as ve:
+        return {"status": "error", "message": str(ve)}
+    
+    except Exception as e:
+        return {"status": "error", "message": f"Database error: {str(e)}"}
+    
+    finally:
+        cursor.close()
+        connection.close()
 
 def delete_token_by_id(token_id):
-    connection = get_db_connection()
-    cursor = connection.cursor()
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor()
 
-    cursor.execute("DELETE FROM RegistrationToken WHERE token_id = %s", (token_id,))
-    connection.commit()
+        cursor.execute("DELETE FROM Token WHERE token_id = %s", (token_id,))
+        connection.commit()
 
-    cursor.close()
-    connection.close()
-
-    if cursor.rowcount == 0:
-        return {"status": "error", "message": "Nothing changed"}
-    return {"status": "success", "message": "Token deleted successfully!"}
+        return {"status": "success", "message": "Token deleted successfully!"}
+    
+    except ValueError as ve:
+        return {"status": "error", "message": str(ve)}
+    
+    except Exception as e:
+        return {"status": "error", "message": f"Database error: {str(e)}"}
+    
+    finally:
+        cursor.close()
+        connection.close()

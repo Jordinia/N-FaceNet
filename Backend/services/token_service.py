@@ -45,16 +45,25 @@ def get_token(token_id):
     
 def use_token(token):
     try:
-        token = token_repository.get_token_by(token=("=", token), expired_date=(">", datetime.now()), is_approved=("=", 1))
-        if token == None:
-            return {"status": "error", "message": "Token already expired or have not been approved"}
+        token = token_repository.get_token_by(token=token)
+        if token['status'] == "error":
+            return {"status": "error", "message": token['message']}
+        if token['data'] == None:
+            return {"status": "error", "message": "Token not found"}
         
-        token['expired_date'] = datetime.now()
-        result = token_repository.update_token_by_id(token['token_id'], token)
+        token_data = token['data']
+        
+        if token_data['is_approved'] == 0:
+            return {"status": "error", "message": "Token haven't been approved"}
+        if token_data['expired_date'] < datetime.now():
+            return {"status": "error", "message": "Token already expired"}
 
-        return {"data": token, "status": "success", "message": result["message"]} 
+        token_data['expired_date'] = datetime.now()
+        result = token_repository.update_token_by_id(token_data['token_id'], token_data)
+
+        return {"data": token_data, "status": "success", "message": result["message"]} 
     except:
-        return {"data": None, "status": "error", "message": "Invalid data"}
+        return {"data": None, "status": "error", "message": "Use token failed"}
 
 def update_token(token_id, data):
     try:
@@ -74,14 +83,15 @@ def update_token(token_id, data):
 def approve_token(token_id):
     try:
         token = token_repository.get_token_by_id(token_id)
-    except:
-        return {"status": "error", "message": "Token not found"} 
-    
-    try:
-        token['is_approved'] = 1
-        result = token_repository.update_token_by_id(token_id, token)
+        if token['data'] == None:
+            return {"data": None, "status": "error", "message": "Token not found"}
+        
+        token_data = token['data']
 
-        return {"data": token, "status": "success", "message": result["message"]} 
+        token_data['is_approved'] = 1
+        result = token_repository.update_token_by_id(token_id, token_data)
+
+        return {"data": token_data, "status": "success", "message": result["message"]} 
     except KeyError:
         return {"status": "error", "message": "Invalid data"} 
     
