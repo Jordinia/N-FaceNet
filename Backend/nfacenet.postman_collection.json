@@ -54,7 +54,7 @@
 					"response": []
 				},
 				{
-					"name": "Single Entry By ID",
+					"name": "Entry By ID",
 					"request": {
 						"method": "GET",
 						"header": []
@@ -115,7 +115,7 @@
 					"response": []
 				},
 				{
-					"name": "Single Detection By ID",
+					"name": "Detection By ID",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
@@ -136,7 +136,7 @@
 					"response": []
 				},
 				{
-					"name": "Edit Detection",
+					"name": "Detection By ID",
 					"request": {
 						"method": "PUT",
 						"header": [],
@@ -154,7 +154,7 @@
 					"response": []
 				},
 				{
-					"name": "Delete Detection",
+					"name": "Detection By ID",
 					"request": {
 						"method": "DELETE",
 						"header": [],
@@ -194,7 +194,7 @@
 					"response": []
 				},
 				{
-					"name": "Single Employee By ID",
+					"name": "Employee By ID",
 					"request": {
 						"method": "GET",
 						"header": [],
@@ -217,6 +217,137 @@
 						"method": "DELETE",
 						"header": [],
 						"url": "http://localhost:5000/employee/3"
+					},
+					"response": []
+				},
+				{
+					"name": "Register Employee Face",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"face_path\": \"/user/pict1.jpg\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:5000/employee"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Token",
+			"item": [
+				{
+					"name": "Token",
+					"request": {
+						"method": "POST",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "Token",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "Token By ID",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "Token Approve",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": "http://localhost:5000/token/1"
+					},
+					"response": []
+				},
+				{
+					"name": "Token By ID",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Room",
+			"item": [
+				{
+					"name": "Room",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:5000/room"
+					},
+					"response": []
+				},
+				{
+					"name": "Room",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"room\": \"Gym\",\r\n    \"capacity\": 15\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:5000/room"
+					},
+					"response": []
+				},
+				{
+					"name": "Room By ID",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "Room By ID",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": "http://localhost:5000/room/2"
+					},
+					"response": []
+				},
+				{
+					"name": "Room By ID",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"capacity\": 20,\r\n    \"room\": \"20.22\",\r\n    \"room_id\": 2\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:5000/room/2"
 					},
 					"response": []
 				}
