@@ -1,25 +1,25 @@
 from repositories import detectionlog_repository
-from services import entrylog_service, employee_service
+from services import entrylog_service, employee_service, color_service
 from datetime import datetime
 
-def create_detection(employee_id, data):
+def create_detection(employee_id, Detection):
     try:
         existing_entry = entrylog_service.get_entry_by_employee(employee_id)
         if existing_entry['data'] == None:
             return {"data": None, "status": "error", "message": existing_entry['message']}
 
         detection = {
-            "camera_id" : data['camera_id'],
+            "camera_id" : Detection['camera_id'],
             "employee_id" : employee_id,
-            "room_id" : data['room_id'],
+            "room_id" : Detection['room_id'],
             "timestamp" : datetime.now(),
-            "confidence" : data['confidence']
+            "confidence" : Detection['confidence']
         }
         
         result = detectionlog_repository.create_detection(detection)
         created_detection = detectionlog_repository.get_detection_by_id(result['detection_id'])
 
-        return {"data": created_detection, "status": "success", "message": result['message']}
+        return {"data": created_detection['data'], "status": "success", "message": result['message']}
     except KeyError:
         return {"data": None, "status": "error", "message": "Create detection failed"}
 

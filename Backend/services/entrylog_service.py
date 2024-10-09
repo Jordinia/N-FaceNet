@@ -1,5 +1,5 @@
 from repositories import entrylog_repository
-from services import employee_service
+from services import employee_service, color_service
 from datetime import datetime
 
 # Create a new entry
@@ -27,8 +27,30 @@ def checkin(employee_id, data):
 
         # Check if there's an existing entry without a checkout time
         existing_entry = entrylog_repository.get_entry_by(employee_id=employee_id, checkout_time=("IS", None))
-        if existing_entry['data']:
+        if len(existing_entry['data']) > 0:
             return {"data": None, "status": "error", "message": "Duplicate check-in"}
+
+        existing_top_Color = color_service.get_color_by_color(data['top_color'])
+        if existing_top_Color['count'] == 0:
+            new_Color = {
+                "color": data['top_color']
+            }
+            top_Color = color_service.create_color(new_Color)['data']
+        else: 
+            top_Color = existing_top_Color['data'][0]
+
+        top_color_id = top_Color['color_id']
+
+        existing_bottom_Color = color_service.get_color_by_color(data['bottom_color'])
+        if existing_bottom_Color['count'] == 0:
+            new_Color = {
+                "color": data['bottom_color']
+            }
+            bottom_Color = color_service.create_color(new_Color)['data']
+        else: 
+            bottom_Color = existing_bottom_Color['data'][0]
+
+        bottom_color_id = bottom_Color['color_id']
 
         # Prepare entry data for check-in
         entry = {
@@ -40,8 +62,8 @@ def checkin(employee_id, data):
         # Prepare detection data
         detection = {
             "current_room_id": 1,  # Example: hardcoded room, can be dynamic
-            "top_color_id": data['top_color_id'],
-            "bottom_color_id": data['bottom_color_id']
+            "top_color_id": top_color_id,
+            "bottom_color_id": bottom_color_id
         }
 
         # Save the entry and update employee detection data
@@ -54,7 +76,7 @@ def checkin(employee_id, data):
         return {"data": {"entry": entry, "employee": employee['data']}, "status": "success", "message": result["message"]}
     
     except KeyError:
-        return {"data": employee, "status": "error", "message": "Invalid data"}
+        return {"data": None, "status": "error", "message": "Invalid data"}
 
 def checkout(employee_id):
     try:
@@ -62,13 +84,13 @@ def checkout(employee_id):
         if existing_employee['data'] == None:
             return {"data": None, "status": "error", "message": existing_employee['message']}
         
-        existing_entry = entrylog_repository.get_entry_by(employee_id=employee_id, checkout_time=("IS", None))
-        if existing_entry['data'] == None:
+        existing_entry = get_entry_by_employee(employee_id)
+        if existing_entry['data'] is None:
             return {"data": None, "status": "error", "message": "Employee has not checked in yet"}
         if existing_entry['status'] == "error":
             return {"data": None, "status": "error", "message": existing_entry['message']}
 
-        existing_entry_data = existing_entry['data']
+        existing_entry_data = existing_entry['data'][0]
 
         entry = {
             "entry_id" : existing_entry_data['entry_id'],
@@ -82,17 +104,16 @@ def checkout(employee_id):
         
         return {"data": updated_entry['data'], "status": "success", "message": result["message"]}
     except KeyError:
-        return {"data": existing_entry, "status": "error", "message": "Invalid data"}
+        return {"data": None, "status": "error", "message": "Invalid data"}
 
 # Retrieve all entries
 def get_entries():
     try:
         entries = entrylog_repository.get_entries()
 
-        return {"count":len(entries), "data": entries, "status": "success"}
+        return {"count":len(entries['data']), "data": entries['data'], "status": "success"}
     except KeyError:
         return {"status": "error", "message": "Invalid data"}
-     
 
 # Retrieve a specific entry
 def get_entry(entry_id):
@@ -112,7 +133,7 @@ def get_entry_by_employee(employee_id):
             return {"data": None, "status": "error", "message": employee['message']} 
         
         entry = entrylog_repository.get_entry_by(employee_id=employee_id, checkout_time=("IS", None))
-        if entry['data'] == None:
+        if len(entry['data']) == 0:
             return {"data": None, "status": "error", "message": "Employee haven't checked in"} 
 
         return {"data": entry['data'], "status": "success"}

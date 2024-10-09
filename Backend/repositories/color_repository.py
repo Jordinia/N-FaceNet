@@ -11,73 +11,73 @@ def get_db_connection():
     )
 
 """
-+---------------+----------+------+-----+---------+----------------+
-| Field         | Type     | Null | Key | Default | Extra          |
-+---------------+----------+------+-----+---------+----------------+
-| entry_id      | int      | NO   | PRI | NULL    | auto_increment |
-| employee_id   | int      | NO   |     | NULL    |                |
-| checkin_time  | datetime | YES  |     | NULL    |                |
-| checkout_time | datetime | YES  |     | NULL    |                |
-+---------------+----------+------+-----+---------+----------------+
++----------+--------------+------+-----+---------+----------------+
+| Field    | Type         | Null | Key | Default | Extra          |
++----------+--------------+------+-----+---------+----------------+
+| color_id | tinyint      | NO   | PRI | NULL    | auto_increment |
+| color    | varchar(100) | YES  |     | NULL    |                |
++----------+--------------+------+-----+---------+----------------+
 """
 
-def create_entry(entry):
+def create_color(Color):
     try:
         connection = get_db_connection()
         cursor = connection.cursor()
 
+        color = Color['color']
+
         query = """
-        INSERT INTO EntryLog (employee_id, checkin_time, checkout_time) 
-        VALUES (%s, %s, %s)
+        INSERT INTO Color (color) 
+        VALUES (%s)
         """
-        cursor.execute(query, (entry['employee_id'], entry['checkin_time'], entry['checkout_time']))
+        cursor.execute(query, (color,))
         connection.commit()
 
-        entry_id = cursor.lastrowid
+        color_id = cursor.lastrowid
 
-        return {"status": "success","entry_id": entry_id, "message": "Entry created successfully!"}
+        return {"status": "success", "color_id": color_id, "message": "Color created successfully!"}
     
     except ValueError as ve:
         return {"status": "error", "message": str(ve)}
     
     except Exception as e:
-        # Catch any other unforeseen errors, like DB connection issues, SQL errors
-        return {"status": "error", "message": f"Database error: {str(e)}"}
+        return {"data": color, "status": "error", "message": f"Database error: {str(e)}"}
     
     finally:
         cursor.close()
         connection.close()
 
-def get_entries():
+
+
+def get_colors():
     try:
         connection = get_db_connection()
         cursor = connection.cursor(dictionary=True)
 
-        cursor.execute("SELECT * FROM EntryLog")
-        entries = cursor.fetchall()
+        cursor.execute("SELECT * FROM Color")
+        colors = cursor.fetchall()
 
-        return {"data": entries, "status": "success"}
+        return {"data": colors, "status": "success"}
     
     except ValueError as ve:
         return {"status": "error", "message": str(ve)}
     
     except Exception as e:
-        # Catch any other unforeseen errors, like DB connection issues, SQL errors
         return {"status": "error", "message": f"Database error: {str(e)}"}
     
     finally:
         cursor.close()
         connection.close()
 
-def get_entry_by_id(entry_id):
+def get_color_by_id(color_id):
     try:
         connection = get_db_connection()
         cursor = connection.cursor(dictionary=True)
 
-        cursor.execute("SELECT * FROM EntryLog WHERE entry_id = %s", (entry_id,))
-        entry = cursor.fetchone()
+        cursor.execute("SELECT * FROM Color WHERE color_id = %s", (color_id))
+        Color = cursor.fetchone()
 
-        return {"data": entry, "status": "success"}
+        return {"data": Color, "status": "success"}
     
     except ValueError as ve:
         return {"status": "error", "message": str(ve)}
@@ -89,7 +89,7 @@ def get_entry_by_id(entry_id):
         cursor.close()
         connection.close()
 
-def get_entry_by(**conditions):
+def get_color_by(**conditions):
     try:
         connection = get_db_connection()
         cursor = connection.cursor(dictionary=True)
@@ -101,23 +101,21 @@ def get_entry_by(**conditions):
             if isinstance(condition, tuple):
                 operator, value = condition
                 if operator in ["IS", "IS NOT"] and value is None:
-                    # For IS NULL or IS NOT NULL, no placeholder is needed
                     where_clauses.append(f"{column} {operator} NULL")
                 else:
                     where_clauses.append(f"{column} {operator} %s")
                     values.append(value)
             else:
-                # Default to equality
                 where_clauses.append(f"{column} = %s")
                 values.append(condition)
 
         where_clause = " AND ".join(where_clauses)
-        query = f"SELECT * FROM EntryLog WHERE {where_clause}"
+        query = f"SELECT * FROM Color WHERE {where_clause}"
 
         cursor.execute(query, tuple(values))
-        entry = cursor.fetchall()
+        Colors = cursor.fetchall()
 
-        return {"data": entry, "status": "success"}
+        return {"data": Colors, "status": "success"}
     
     except ValueError as ve:
         return {"status": "error", "message": str(ve)}
@@ -129,20 +127,22 @@ def get_entry_by(**conditions):
         cursor.close()
         connection.close()
 
-def update_entry_by_id(entry):
+def update_color_by_id(color_id, Color):
     try:
         connection = get_db_connection()
         cursor = connection.cursor()
+        
+        color = Color['color']
 
         query = """
-        UPDATE EntryLog 
-        SET employee_id = %s, checkin_time = %s, checkout_time = %s 
-        WHERE entry_id = %s
+        UPDATE Color 
+        SET color = %s
+        WHERE color_id = %s
         """
-        cursor.execute(query, (entry['employee_id'], entry['checkin_time'], entry['checkout_time'], entry['entry_id']))
+        cursor.execute(query, (color, color_id))
         connection.commit()
 
-        return {"status": "success", "message": "Entry updated successfully!"}
+        return {"status": "success", "message": "Color updated successfully!"}
     
     except ValueError as ve:
         return {"status": "error", "message": str(ve)}
@@ -154,15 +154,15 @@ def update_entry_by_id(entry):
         cursor.close()
         connection.close()
 
-def delete_entry_by_id(entry_id):
+def delete_color_by_id(color_id):
     try:
         connection = get_db_connection()
         cursor = connection.cursor()
 
-        cursor.execute("DELETE FROM EntryLog WHERE entry_id = %s", (entry_id,))
+        cursor.execute("DELETE FROM Color WHERE color_id = %s", (color_id))
         connection.commit()
 
-        return {"status": "success", "message": "Entry deleted successfully!"}
+        return {"status": "success", "message": "Color deleted successfully!"}
     
     except ValueError as ve:
         return {"status": "error", "message": str(ve)}

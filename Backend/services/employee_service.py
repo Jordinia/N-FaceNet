@@ -6,7 +6,7 @@ def create_employee(data):
     try:
         conditions = {"nik": data['nik']}
         existing_employee = employee_repository.get_employee_by(**conditions)
-        if existing_employee['data']:
+        if len(existing_employee['data']) > 0:
             return {"data": None, "status": "error", "message": "Duplicate NIK"}
 
         employee_data = {
@@ -43,7 +43,6 @@ def get_employees():
 
 # Retrieve a specific employee
 def get_employee(employee_id):
-
     try:
         employee = employee_repository.get_employee_by_id(employee_id)
         if employee['data'] == None:
@@ -52,6 +51,27 @@ def get_employee(employee_id):
         return {"data": employee['data'], "status": "success"}
     except:
         return {"data": None, "status": "error", "message": "Get employee failed"}
+    
+def get_employee_by_params(gender=None, age=None, top_color_id=None, bottom_color_id=None):
+    try:
+        params = {}
+        if gender is not None: 
+            params['gender'] = gender
+        if age is not None:
+            params['age'] = age
+        if top_color_id is not None:
+            params['top_color_id'] = top_color_id
+        if bottom_color_id is not None:
+            params['bottom_color_id'] = bottom_color_id
+
+        existing_employee = employee_repository.get_employee_by(**params)
+        
+        if len(existing_employee['data']) == 0:
+            return {"count":len(existing_employee['data']), "data": existing_employee['data'], "status": "success", "message": "No employee found with the provided parameters"}
+        else:
+            return {"count":len(existing_employee['data']), "data": existing_employee['data'], "status": "success"}
+    except Exception as e:
+        return {"data": None, "status": "error", "message": str(e)}
 
 # Update an employee
 def update_employee(employee_id, data):

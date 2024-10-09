@@ -134,12 +134,6 @@ def get_employee_by(**conditions):
         cursor.execute(query, tuple(values))
         employee = cursor.fetchall()
 
-        if len(employee) == 1:
-            employee = employee[0]
-
-        if employee == []:
-            employee = None
-
         return {"data": employee, "status": "success"}
     
     except ValueError as ve:
