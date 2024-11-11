@@ -1,6 +1,8 @@
 from repositories import employee_repository
 from services import token_service
 from datetime import datetime
+import pysftp
+import os
 
 def create_employee(data):
     try:
@@ -52,8 +54,10 @@ def get_employee(employee_id):
     except:
         return {"data": None, "status": "error", "message": "Get employee failed"}
     
-def get_employee_by_params(gender=None, age=None, top_color_id=None, bottom_color_id=None):
+def get_employee_by_params(gender=None, age=None, top_color_id=None, bottom_color_id=None, current_room_id=None, name=None):
     try:
+
+        print(current_room_id)
         params = {}
         if gender is not None: 
             params['gender'] = gender
@@ -63,13 +67,17 @@ def get_employee_by_params(gender=None, age=None, top_color_id=None, bottom_colo
             params['top_color_id'] = top_color_id
         if bottom_color_id is not None:
             params['bottom_color_id'] = bottom_color_id
+        if current_room_id is not None:
+            params['current_room_id'] = current_room_id
+        if name is not None:
+            params['name'] = name
 
         existing_employee = employee_repository.get_employee_by(**params)
         
         if len(existing_employee['data']) == 0:
-            return {"count":len(existing_employee['data']), "data": existing_employee['data'], "status": "success", "message": "No employee found with the provided parameters"}
+            return {"count":len(existing_employee['data']), "data": existing_employee['data'], "status": existing_employee['status'], "message": "No employee found with the provided parameters"}
         else:
-            return {"count":len(existing_employee['data']), "data": existing_employee['data'], "status": "success"}
+            return {"count":len(existing_employee['data']), "data": existing_employee['data'], "status": existing_employee['status']}
     except Exception as e:
         return {"data": None, "status": "error", "message": str(e)}
 
@@ -140,9 +148,10 @@ def register_employee_face(token, data):
             return {"status": "error", "message": "Employee not found"}
 
         employee_existing_data = employee_existing['data']
+        download_face(data)
 
         employee = {
-            "face_path" : data['face_path'],
+            "face_path" : data['folder_path'],
             "current_room_id" : employee_existing_data['current_room_id'],
             "top_color_id" : employee_existing_data['top_color_id'],
             "bottom_color_id" : employee_existing_data['bottom_color_id'],
@@ -159,6 +168,41 @@ def register_employee_face(token, data):
         return {"data": updated_employee['data'], "status": "success", "message": "Face registered succesfully"}
     except KeyError:
         return {"data": registration_token, "status": "error", "message": "Register Employee Face Failed"}
+    
+def download_face(face_data):
+    # SFTP server credentials
+    sftp_host = "172.16.0.99"
+    sftp_username = "jordinia"
+    sftp_password = "3701"
+    
+    # Local and remote paths
+    remote_folder_path = face_data['folder_path']
+    local_folder_path = f"Employees/{face_data['employee_id']}"
+    
+    # List of filenames to download
+    filenames = [filename for filename in face_data['images'].values()]
+
+    try:
+        # Set up SFTP connection
+        with pysftp.Connection(host=sftp_host, username=sftp_username, password=sftp_password) as sftp:
+            # Ensure local folder exists
+            os.makedirs(local_folder_path, exist_ok=True)
+            
+            # Download each file from the remote server
+            for filename in filenames:
+                remote_file_path = f"{remote_folder_path}/{filename}"
+                local_file_path = f"{local_folder_path}/{filename}"
+
+                print(remote_file_path)
+                
+                # Download the file
+                sftp.get(remote_file_path, local_file_path)
+                print(f"Downloaded {filename} to {local_file_path}")
+
+        print("All files downloaded successfully.")
+
+    except Exception as e:
+        print(f"Error downloading files: {e}")
 
 # Delete an employee
 def delete_employee(employee_id):

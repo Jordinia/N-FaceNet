@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify, Blueprint
 from flask.views import MethodView
-from services import entrylog_service, detectionlog_service, employee_service, token_service, room_service
+from services import entrylog_service, detectionlog_service, employee_service, token_service, room_service, camera_service
 from datetime import datetime
 
 app = Flask(__name__)
@@ -32,6 +32,7 @@ detection_bp = Blueprint('detection', __name__)
 employee_bp = Blueprint('employee', __name__)
 token_bp = Blueprint('token', __name__)
 room_bp = Blueprint('room', __name__)
+camera_bp = Blueprint('camera', __name__)
 
 class EntryAPI(MethodView):
     def post(self, employee_id):
@@ -99,11 +100,13 @@ class EmployeeAPI(MethodView):
             age = request.args.get('age')
             top_color_id = request.args.get('top_color_id')
             bottom_color_id = request.args.get('bottom_color_id')
+            name = request.args.get('name')
+            current_room_id = request.args.get('current_room_id')
 
-            if gender is None and age is None and top_color_id is None and bottom_color_id is None:
+            if gender is None and age is None and top_color_id is None and bottom_color_id is None and name is None and current_room_id is None:
                 result = employee_service.get_employees()
             else:
-                result = employee_service.get_employee_by_params(gender, age, top_color_id, bottom_color_id)
+                result = employee_service.get_employee_by_params(gender, age, top_color_id, bottom_color_id, current_room_id, name)
 
             return jsonify(create_response(result)), 200
         else:
@@ -123,12 +126,15 @@ class TokenAPI(MethodView):
         result = token_service.approve_token(token_id)
         return jsonify(create_response(result)), 201 if result['status'] == 'success' else 400
 
-    def get(self, token_id=None):
-        if token_id is None:
+    def get(self, token_id=None, token=None):
+        if token_id is None and token is None:
             result = token_service.get_tokens()
             return jsonify(create_response(result)), 200
-        else:
+        elif token_id is not None:
             result = token_service.get_token(token_id)
+            return jsonify(create_response(result)), 200 if result else 404
+        elif token is not None:
+            result = token_service.get_available_token_by_token(token)
             return jsonify(create_response(result)), 200 if result else 404
         
     def delete(self, token_id):
@@ -157,6 +163,29 @@ class RoomAPI(MethodView):
     def delete(self, room_id):
         result = room_service.delete_room(room_id)
         return jsonify(create_response(result)), 201 if result['status'] == 'success' else 400
+    
+class CameraAPI(MethodView):
+    def post(self):
+        data = request.json
+        result = camera_service.create_camera(data)
+        return jsonify(create_response(result)), 201 if result['status'] == 'success' else 400
+
+    def put(self, camera_id):
+        data = request.json
+        result = camera_service.update_camera(camera_id, data)
+        return jsonify(create_response(result)), 200 if result['status'] == 'success' else 400
+
+    def get(self, camera_id=None):
+        if camera_id is None:
+            result = camera_service.get_cameras()
+            return jsonify(create_response(result)), 200
+        else:
+            result = camera_service.get_camera(camera_id)
+            return jsonify(create_response(result)), 200 if result['status'] == 'success' else 404
+        
+    def delete(self, camera_id):
+        result = camera_service.delete_camera(camera_id)
+        return jsonify(create_response(result)), 200 if result['status'] == 'success' else 400
 
 # Register the EntryAPI view
 entry_view = EntryAPI.as_view('entry_api')
@@ -182,9 +211,15 @@ room_view = RoomAPI.as_view('room_api')
 room_bp.add_url_rule('', view_func=room_view, methods=['POST', 'GET'])
 room_bp.add_url_rule('/<int:room_id>', view_func=room_view, methods=['GET', 'DELETE', 'PUT'])
 
+# Register the CameraPI view
+camera_view = CameraAPI.as_view('camera_api')
+camera_bp.add_url_rule('', view_func=camera_view, methods=['POST', 'GET'])
+camera_bp.add_url_rule('/<int:camera_id>', view_func=camera_view, methods=['GET', 'DELETE', 'PUT'])
+
 # Register the TokenAPI view
 token_view = TokenAPI.as_view('token_api')
 token_bp.add_url_rule('', view_func=token_view, methods=['GET'])
+token_bp.add_url_rule('<string:token>', view_func=token_view, methods=['GET'])
 token_bp.add_url_rule('/<int:employee_id>', view_func=token_view, methods=['POST'])
 token_bp.add_url_rule('/<int:token_id>', view_func=token_view, methods=['GET', 'PUT', 'DELETE'])
 token_bp.add_url_rule('/token/<int:token_id>', view_func=token_view, methods=['GET'])
@@ -195,6 +230,7 @@ app.register_blueprint(detection_bp, url_prefix='/detection')
 app.register_blueprint(employee_bp, url_prefix='/employee')
 app.register_blueprint(token_bp, url_prefix='/token')
 app.register_blueprint(room_bp, url_prefix='/room')
+app.register_blueprint(camera_bp, url_prefix='/camera')
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -115,7 +115,12 @@ def get_employee_by(**conditions):
         values = []
 
         for column, condition in conditions.items():
-            if isinstance(condition, tuple):
+            # Check if the column is "name" to apply the LIKE operator
+            if column == "name":
+                where_clauses.append(f"{column} LIKE %s")
+                values.append(f"%{condition}%")  # Wrap the value in % for partial match
+
+            elif isinstance(condition, tuple):
                 operator, value = condition
                 if operator in ["IS", "IS NOT"] and value is None:
                     # For IS NULL or IS NOT NULL, no placeholder is needed

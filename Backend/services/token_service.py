@@ -31,7 +31,7 @@ def get_tokens():
     try:
         tokens = token_repository.get_tokens()
 
-        return {"count":len(tokens), "data": tokens, "status": "success"}
+        return {"count":len(tokens), "data": tokens['data'], "status": "success"}
     except KeyError:
         return {"status": "error", "message": "Invalid data"}
 
@@ -39,7 +39,15 @@ def get_token(token_id):
     try:
         token = token_repository.get_token_by_id(token_id)
 
-        return {"data": token, "status": "success"}
+        return {"data": token['data'], "status": "success"}
+    except KeyError:
+        return {"status": "error", "message": "Invalid data"} 
+    
+def get_available_token_by_token(token):
+    try:
+        token_data = token_repository.get_token_by(token=token, expired_date=(">", datetime.now()))['data']
+
+        return {"data": token_data, "status": "success"}
     except KeyError:
         return {"status": "error", "message": "Invalid data"} 
     

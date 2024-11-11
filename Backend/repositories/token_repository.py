@@ -37,7 +37,7 @@ def create_token(token):
 
         token_id = cursor.lastrowid
 
-        return {"status": "success","token_id": token_id, "message": "Token created successfully!"}
+        return {"status": "success", "token_id": token_id, "message": "Token created successfully!"}
 
     except ValueError as ve:
         return {"status": "error", "message": str(ve)}
