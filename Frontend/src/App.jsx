@@ -4,12 +4,12 @@ import RoomPage from './pages/RoomPage';
 
 function App() {
   const rooms = [/* your rooms data */];
-  
+
   return (
     <Router>
       <Routes>
         <Route path="/" element={<Dashboard />} />
-        <Route path="/room/:id" element={<RoomPage rooms={rooms} />} />
+        <Route path="/room/:id" element={<RoomPage />} />
       </Routes>
     </Router>
   );
