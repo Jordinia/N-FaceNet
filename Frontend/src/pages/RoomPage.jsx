@@ -1,29 +1,29 @@
-// RoomPage.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 
 const RoomPage = () => {
-  // Sample rooms data
-  const rooms = [
-    { id: 1, name: 'Living Room' },
-    { id: 2, name: 'Bedroom' },
-    { id: 3, name: 'Kitchen' },
-  ];
-
-  const { id } = useParams();
-  const room = rooms.find(r => r.id === parseInt(id));
+  const [streamUrl, setStreamUrl] = useState("http://10.29.254.161:65000/video");
+  const videoRef = useRef(null);  // Ref for the video element
   const [cameras, setCameras] = useState([]);
   const [showAddCamera, setShowAddCamera] = useState(false);
   const [newCamera, setNewCamera] = useState({ name: '', url: '' });
   const [detectedUsers, setDetectedUsers] = useState([]); // Store detected user data
+
+  const { id } = useParams();
+  const rooms = [
+    { id: 1, name: 'Common Room' },
+    { id: 2, name: 'Bedroom' },
+    { id: 3, name: 'Kitchen' },
+  ];
+  
+  const room = rooms.find(r => r.id === parseInt(id));
 
   const handleAddCamera = () => {
     if (newCamera.name && newCamera.url) {
       setCameras([...cameras, { ...newCamera, id: Date.now() }]);
       setNewCamera({ name: '', url: '' });
       setShowAddCamera(false);
-      // Simulate user detection for demonstration
       simulateUserDetection();
     }
   };
@@ -33,7 +33,6 @@ const RoomPage = () => {
   };
 
   const simulateUserDetection = () => {
-    // Simulate detection of users every 2 seconds
     const newUser = {
       id: Date.now(),
       gender: Math.random() > 0.5 ? 'Male' : 'Female',
@@ -62,18 +61,21 @@ const RoomPage = () => {
             <div key={camera.id} className="bg-white rounded-xl shadow-sm p-4">
               <div className="flex justify-between items-start mb-4">
                 <h3 className="font-medium">{camera.name}</h3>
-                <button 
+                <button
                   onClick={() => handleDeleteCamera(camera.id)}
                   className="text-red-500 hover:text-red-600"
                 >
                   <Trash2 className="w-5 h-5" />
                 </button>
               </div>
-              <div className="aspect-video bg-gray-100 rounded-lg mb-4">
-                {/* Camera feed would go here */}
-                <div className="w-full h-full flex items-center justify-center text-gray-500">
-                  <video controls autoPlay src={camera.url} className="w-full h-full" />
-                </div>
+              <div className="aspect-video bg-gray-100 rounded-lg mb-4 overflow-hidden">
+                {/* Camera feed */}
+                <img
+                  src={streamUrl}
+                  alt="MJPEG Stream"
+                  className="w-full h-full object-cover"
+                  loading="eager"
+                />
               </div>
             </div>
           ))}

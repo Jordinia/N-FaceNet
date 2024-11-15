@@ -8,14 +8,14 @@ const Dashboard = () => {
   const rooms = [
     {
       id: 1,
-      name: 'Meeting Room',
-      image: '/api/placeholder/400/300',
+      name: 'Common Room',
+      image: '1.jpg',
       capacity: '3/10'
     },
     {
       id: 2,
       name: 'Gym Room',
-      image: '/api/placeholder/400/300',
+      image: '2.jpg',
       capacity: '15/20'
     }
   ];

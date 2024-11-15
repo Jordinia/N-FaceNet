@@ -6,7 +6,7 @@ export const RoomCard = ({ room }) => {
     <Link to={`/room/${room.id}`} className="block">
       <div className="relative rounded-xl overflow-hidden transition-transform hover:scale-105">
         <img
-          src={room.image}
+          src={'/images/rooms/' + room.image}
           alt={room.name}
           className="w-full h-48 object-cover"
         />
