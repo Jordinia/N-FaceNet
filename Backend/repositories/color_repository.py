@@ -1,20 +1,21 @@
-import mysql.connector
+import psycopg2
+from psycopg2.extras import RealDictCursor
 import config
 
 def get_db_connection():
-    return mysql.connector.connect(
-        host=config.MYSQL_HOST,
-        port=config.MYSQL_PORT,
-        user=config.MYSQL_USER,
-        password=config.MYSQL_PASSWORD,
-        database=config.MYSQL_DB
+    return psycopg2.connect(
+        host=config.POSTGRES_HOST,
+        port=config.POSTGRES_PORT,
+        user=config.POSTGRES_USER,
+        password=config.POSTGRES_PASSWORD,
+        database=config.POSTGRES_DB
     )
 
 """
 +----------+--------------+------+-----+---------+----------------+
 | Field    | Type         | Null | Key | Default | Extra          |
 +----------+--------------+------+-----+---------+----------------+
-| color_id | tinyint      | NO   | PRI | NULL    | auto_increment |
+| color_id | serial       | NO   | PRI | NULL    | auto_increment |
 | color    | varchar(100) | YES  |     | NULL    |                |
 +----------+--------------+------+-----+---------+----------------+
 """
@@ -28,39 +29,30 @@ def create_color(Color):
 
         query = """
         INSERT INTO Color (color) 
-        VALUES (%s)
+        VALUES (%s) RETURNING color_id
         """
         cursor.execute(query, (color,))
+        color_id = cursor.fetchone()[0]
         connection.commit()
-
-        color_id = cursor.lastrowid
 
         return {"status": "success", "color_id": color_id, "message": "Color created successfully!"}
     
-    except ValueError as ve:
-        return {"status": "error", "message": str(ve)}
-    
     except Exception as e:
-        return {"data": color, "status": "error", "message": f"Database error: {str(e)}"}
+        return {"data": Color, "status": "error", "message": f"Database error: {str(e)}"}
     
     finally:
         cursor.close()
         connection.close()
 
-
-
 def get_colors():
     try:
         connection = get_db_connection()
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
 
         cursor.execute("SELECT * FROM Color")
         colors = cursor.fetchall()
 
         return {"data": colors, "status": "success"}
-    
-    except ValueError as ve:
-        return {"status": "error", "message": str(ve)}
     
     except Exception as e:
         return {"status": "error", "message": f"Database error: {str(e)}"}
@@ -72,15 +64,12 @@ def get_colors():
 def get_color_by_id(color_id):
     try:
         connection = get_db_connection()
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
 
-        cursor.execute("SELECT * FROM Color WHERE color_id = %s", (color_id))
-        Color = cursor.fetchone()
+        cursor.execute("SELECT * FROM Color WHERE color_id = %s", (color_id,))
+        color = cursor.fetchone()
 
-        return {"data": Color, "status": "success"}
-    
-    except ValueError as ve:
-        return {"status": "error", "message": str(ve)}
+        return {"data": color, "status": "success"}
     
     except Exception as e:
         return {"status": "error", "message": f"Database error: {str(e)}"}
@@ -92,7 +81,7 @@ def get_color_by_id(color_id):
 def get_color_by(**conditions):
     try:
         connection = get_db_connection()
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
 
         where_clauses = []
         values = []
@@ -113,12 +102,9 @@ def get_color_by(**conditions):
         query = f"SELECT * FROM Color WHERE {where_clause}"
 
         cursor.execute(query, tuple(values))
-        Colors = cursor.fetchall()
+        colors = cursor.fetchall()
 
-        return {"data": Colors, "status": "success"}
-    
-    except ValueError as ve:
-        return {"status": "error", "message": str(ve)}
+        return {"data": colors, "status": "success"}
     
     except Exception as e:
         return {"status": "error", "message": f"Database error: {str(e)}"}
@@ -144,9 +130,6 @@ def update_color_by_id(color_id, Color):
 
         return {"status": "success", "message": "Color updated successfully!"}
     
-    except ValueError as ve:
-        return {"status": "error", "message": str(ve)}
-    
     except Exception as e:
         return {"status": "error", "message": f"Database error: {str(e)}"}
     
@@ -159,13 +142,10 @@ def delete_color_by_id(color_id):
         connection = get_db_connection()
         cursor = connection.cursor()
 
-        cursor.execute("DELETE FROM Color WHERE color_id = %s", (color_id))
+        cursor.execute("DELETE FROM Color WHERE color_id = %s", (color_id,))
         connection.commit()
 
         return {"status": "success", "message": "Color deleted successfully!"}
-    
-    except ValueError as ve:
-        return {"status": "error", "message": str(ve)}
     
     except Exception as e:
         return {"status": "error", "message": f"Database error: {str(e)}"}

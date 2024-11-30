@@ -1,13 +1,14 @@
-import mysql.connector
+import psycopg2
+from psycopg2.extras import RealDictCursor
 import config
 
 def get_db_connection():
-    return mysql.connector.connect(
-        host=config.MYSQL_HOST,
-        port=config.MYSQL_PORT,
-        user=config.MYSQL_USER,
-        password=config.MYSQL_PASSWORD,
-        database=config.MYSQL_DB
+    return psycopg2.connect(
+        host=config.POSTGRES_HOST,
+        port=config.POSTGRES_PORT,
+        user=config.POSTGRES_USER,
+        password=config.POSTGRES_PASSWORD,
+        database=config.POSTGRES_DB
     )
 
 """
@@ -16,8 +17,8 @@ def get_db_connection():
 +---------------+----------+------+-----+---------+----------------+
 | entry_id      | int      | NO   | PRI | NULL    | auto_increment |
 | employee_id   | int      | NO   |     | NULL    |                |
-| checkin_time  | datetime | YES  |     | NULL    |                |
-| checkout_time | datetime | YES  |     | NULL    |                |
+| checkin_time  | timestamp| YES  |     | NULL    |                |
+| checkout_time | timestamp| YES  |     | NULL    |                |
 +---------------+----------+------+-----+---------+----------------+
 """
 
@@ -33,7 +34,7 @@ def create_entry(entry):
         cursor.execute(query, (entry['employee_id'], entry['checkin_time'], entry['checkout_time']))
         connection.commit()
 
-        entry_id = cursor.lastrowid
+        entry_id = cursor.fetchone()[0]  # Get the last inserted entry ID
 
         return {"status": "success","entry_id": entry_id, "message": "Entry created successfully!"}
     
@@ -41,7 +42,6 @@ def create_entry(entry):
         return {"status": "error", "message": str(ve)}
     
     except Exception as e:
-        # Catch any other unforeseen errors, like DB connection issues, SQL errors
         return {"status": "error", "message": f"Database error: {str(e)}"}
     
     finally:
@@ -51,7 +51,7 @@ def create_entry(entry):
 def get_entries():
     try:
         connection = get_db_connection()
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
 
         cursor.execute("SELECT * FROM EntryLog")
         entries = cursor.fetchall()
@@ -62,7 +62,6 @@ def get_entries():
         return {"status": "error", "message": str(ve)}
     
     except Exception as e:
-        # Catch any other unforeseen errors, like DB connection issues, SQL errors
         return {"status": "error", "message": f"Database error: {str(e)}"}
     
     finally:
@@ -72,7 +71,7 @@ def get_entries():
 def get_entry_by_id(entry_id):
     try:
         connection = get_db_connection()
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
 
         cursor.execute("SELECT * FROM EntryLog WHERE entry_id = %s", (entry_id,))
         entry = cursor.fetchone()
@@ -92,7 +91,7 @@ def get_entry_by_id(entry_id):
 def get_entry_by(**conditions):
     try:
         connection = get_db_connection()
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
 
         where_clauses = []
         values = []

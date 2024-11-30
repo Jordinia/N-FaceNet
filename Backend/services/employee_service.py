@@ -31,7 +31,7 @@ def create_employee(data):
 
         return {"data": employee_data, "authentication": token['data'], "status": "success", "message": result['message']}
     except KeyError:
-        return {"data": None, "status": "error", "message": "Invalid data"}
+        return {"data": None, "status": "error", "message": result['message']}
 
 def get_employees():
 
@@ -41,7 +41,7 @@ def get_employees():
         return {"count": len(employees['data']), "data": employees['data'], "status": "success"}
     
     except:
-        return {"data": None, "status": "error", "message": "Employee not Found"}
+        return {"data": None, "status": "error", "message": employees['message']}
 
 # Retrieve a specific employee
 def get_employee(employee_id):
@@ -168,12 +168,13 @@ def register_employee_face(token, data):
         return {"data": updated_employee['data'], "status": "success", "message": "Face registered succesfully"}
     except KeyError:
         return {"data": registration_token, "status": "error", "message": "Register Employee Face Failed"}
-    
+
 def download_face(face_data):
     # SFTP server credentials
-    sftp_host = "172.16.0.99"
+    sftp_host = "112.78.144.146"
     sftp_username = "jordinia"
     sftp_password = "3701"
+    sftp_port = 22098  # Specify the SSH port
     
     # Local and remote paths
     remote_folder_path = face_data['folder_path']
@@ -183,8 +184,12 @@ def download_face(face_data):
     filenames = [filename for filename in face_data['images'].values()]
 
     try:
-        # Set up SFTP connection
-        with pysftp.Connection(host=sftp_host, username=sftp_username, password=sftp_password) as sftp:
+        # Set up the connection options to ignore host key checking
+        cnopts = pysftp.CnOpts()
+        cnopts.hostkeys = None  # Disable host key checking
+
+        # Set up SFTP connection with the specified port
+        with pysftp.Connection(host=sftp_host, username=sftp_username, password=sftp_password, port=sftp_port, cnopts=cnopts) as sftp:
             # Ensure local folder exists
             os.makedirs(local_folder_path, exist_ok=True)
             

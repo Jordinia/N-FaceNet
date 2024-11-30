@@ -1,13 +1,14 @@
-import mysql.connector
+import psycopg2
+from psycopg2.extras import RealDictCursor
 import config
 
 def get_db_connection():
-    return mysql.connector.connect(
-        host=config.MYSQL_HOST,
-        port=config.MYSQL_PORT,
-        user=config.MYSQL_USER,
-        password=config.MYSQL_PASSWORD,
-        database=config.MYSQL_DB
+    return psycopg2.connect(
+        host=config.POSTGRES_HOST,
+        port=config.POSTGRES_PORT,
+        user=config.POSTGRES_USER,
+        password=config.POSTGRES_PASSWORD,
+        database=config.POSTGRES_DB
     )
 
 """
@@ -36,12 +37,14 @@ def create_detection(detection_data):
 
         query = """
         INSERT INTO DetectionLog (camera_id, employee_id, room_id, timestamp, confidence) 
-        VALUES (%s, %s, %s, %s, %s)
+        VALUES (%s, %s, %s, %s, %s) 
+        RETURNING detection_id
         """
         cursor.execute(query, (camera_id, employee_id, room_id, timestamp, confidence))
         connection.commit()
 
-        detection_id = cursor.lastrowid
+        # Get the last inserted detection_id
+        detection_id = cursor.fetchone()['detection_id']
 
         return {"status": "success", "message": "Detection created successfully!", "detection_id": detection_id}
     
@@ -58,7 +61,7 @@ def create_detection(detection_data):
 def get_detections():
     try:
         connection = get_db_connection()
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
 
         cursor.execute("SELECT * FROM DetectionLog")
         detections = cursor.fetchall()
@@ -78,7 +81,7 @@ def get_detections():
 def get_detection_by_id(detection_id):
     try:
         connection = get_db_connection()
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
 
         cursor.execute("SELECT * FROM DetectionLog WHERE detection_id = %s", (detection_id,))
         detection = cursor.fetchone()
@@ -98,7 +101,7 @@ def get_detection_by_id(detection_id):
 def get_detection_by(**conditions):
     try:
         connection = get_db_connection()
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
 
         where_clauses = []
         values = []
@@ -118,7 +121,7 @@ def get_detection_by(**conditions):
                 values.append(condition)
 
         where_clause = " AND ".join(where_clauses)
-        query = f"SELECT * FROM EntryLog WHERE {where_clause}"
+        query = f"SELECT * FROM DetectionLog WHERE {where_clause}"
 
         cursor.execute(query, tuple(values))
         detection = cursor.fetchall()

@@ -1,13 +1,14 @@
-import mysql.connector
+import psycopg2
+import psycopg2.extras
 import config
 
 def get_db_connection():
-    return mysql.connector.connect(
-        host=config.MYSQL_HOST,
-        port=config.MYSQL_PORT,
-        user=config.MYSQL_USER,
-        password=config.MYSQL_PASSWORD,
-        database=config.MYSQL_DB
+    return psycopg2.connect(
+        host=config.POSTGRES_HOST,
+        port=config.POSTGRES_PORT,
+        user=config.POSTGRES_USER,
+        password=config.POSTGRES_PASSWORD,
+        database=config.POSTGRES_DB
     )
 
 """
@@ -17,9 +18,9 @@ def get_db_connection():
 | token_id     | int         | NO   | PRI | NULL    | auto_increment |
 | token        | varchar(16) | NO   |     | NULL    |                |
 | employee_id  | int         | NO   |     | NULL    |                |
-| created_date | datetime    | NO   |     | NULL    |                |
-| expired_date | datetime    | NO   |     | NULL    |                |
-| is_approved  | tinyint(1)  | YES  |     | NULL    |                |
+| created_date | timestamp   | NO   |     | NULL    |                |
+| expired_date | timestamp   | NO   |     | NULL    |                |
+| is_approved  | boolean     | YES  |     | NULL    |                |
 +--------------+-------------+------+-----+---------+----------------+
 """
 
@@ -31,11 +32,11 @@ def create_token(token):
         query = """
         INSERT INTO Token (token, employee_id, created_date, expired_date, is_approved) 
         VALUES (%s, %s, %s, %s, %s)
+        RETURNING token_id
         """
         cursor.execute(query, (token['token'], token['employee_id'], token['created_date'], token['expired_date'], token['is_approved']))
+        token_id = cursor.fetchone()[0]
         connection.commit()
-
-        token_id = cursor.lastrowid
 
         return {"status": "success", "token_id": token_id, "message": "Token created successfully!"}
 
@@ -43,7 +44,6 @@ def create_token(token):
         return {"status": "error", "message": str(ve)}
     
     except Exception as e:
-        # Catch any other unforeseen errors, like DB connection issues, SQL errors
         return {"status": "error", "message": f"Database error: {str(e)}"}
     
     finally:
@@ -53,7 +53,7 @@ def create_token(token):
 def get_tokens():
     try:
         connection = get_db_connection()
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
         cursor.execute("SELECT * FROM Token")
         tokens = cursor.fetchall()
@@ -64,7 +64,6 @@ def get_tokens():
         return {"status": "error", "message": str(ve)}
     
     except Exception as e:
-        # Catch any other unforeseen errors, like DB connection issues, SQL errors
         return {"status": "error", "message": f"Database error: {str(e)}"}
     
     finally:
@@ -74,7 +73,7 @@ def get_tokens():
 def get_token_by_id(token_id):
     try:
         connection = get_db_connection()
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
         cursor.execute("SELECT * FROM Token WHERE token_id = %s", (token_id,))
         token = cursor.fetchone()
@@ -85,7 +84,6 @@ def get_token_by_id(token_id):
         return {"status": "error", "message": str(ve)}
     
     except Exception as e:
-        # Catch any other unforeseen errors, like DB connection issues, SQL errors
         return {"status": "error", "message": f"Database error: {str(e)}"}
     
     finally:
@@ -95,7 +93,7 @@ def get_token_by_id(token_id):
 def get_token_by(**conditions):
     try:
         connection = get_db_connection()
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
         where_clauses = []
         values = []
@@ -104,13 +102,11 @@ def get_token_by(**conditions):
                 if isinstance(condition, tuple):
                     operator, value = condition
                     if operator in ["IS", "IS NOT"] and value is None:
-                        # For IS NULL or IS NOT NULL, no placeholder is needed
                         where_clauses.append(f"{column} {operator} NULL")
                     else:
                         where_clauses.append(f"{column} {operator} %s")
                         values.append(value)
                 else:
-                    # Default to equality
                     where_clauses.append(f"{column} = %s")
                     values.append(condition)
 

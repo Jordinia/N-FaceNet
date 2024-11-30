@@ -1,24 +1,15 @@
-import mysql.connector
+import psycopg2
+from psycopg2.extras import RealDictCursor
 import config
 
 def get_db_connection():
-    return mysql.connector.connect(
-        host=config.MYSQL_HOST,
-        port=config.MYSQL_PORT,
-        user=config.MYSQL_USER,
-        password=config.MYSQL_PASSWORD,
-        database=config.MYSQL_DB
+    return psycopg2.connect(
+        host=config.POSTGRES_HOST,
+        port=config.POSTGRES_PORT,
+        user=config.POSTGRES_USER,
+        password=config.POSTGRES_PASSWORD,
+        database=config.POSTGRES_DB
     )
-
-"""
-+--------------+------------+------+-----+---------+----------------+
-| Field        | Type       | Null | Key | Default | Extra          |
-+--------------+------------+------+-----+---------+----------------+
-| camera_id    | tinyint    | NO   | PRI | NULL    | auto_increment |
-| room_id      | tinyint    | NO   |     | NULL    |                |
-| created_date | datetime   | NO   |     | NULL    |                |
-+--------------+------------+------+-----+---------+----------------+
-"""
 
 def create_camera(room_data):
     try:
@@ -27,15 +18,17 @@ def create_camera(room_data):
 
         room_id = room_data['room_id']
         created_date = room_data['created_date']
+        stream_url = room_data['stream_url']
 
         query = """
-        INSERT INTO Camera (room_id, created_date) 
-        VALUES (%s, %s)
+        INSERT INTO camera (room_id, created_date, stream_url) 
+        VALUES (%s, %s, %s)
+        RETURNING camera_id
         """
-        cursor.execute(query, (room_id, created_date))
+        cursor.execute(query, (room_id, created_date, stream_url))
         connection.commit()
 
-        camera_id = cursor.lastrowid
+        camera_id = cursor.fetchone()[0]
         return {"status": "success", "camera_id": camera_id, "message": "Camera room created successfully!"}
     
     except ValueError as ve:
@@ -51,9 +44,9 @@ def create_camera(room_data):
 def get_cameras():
     try:
         connection = get_db_connection()
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
 
-        cursor.execute("SELECT * FROM Camera")
+        cursor.execute("SELECT * FROM camera")
         rooms = cursor.fetchall()
 
         return {"data": rooms, "status": "success"}
@@ -71,9 +64,9 @@ def get_cameras():
 def get_camera_by_id(camera_id):
     try:
         connection = get_db_connection()
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
 
-        cursor.execute("SELECT * FROM Camera WHERE camera_id = %s", (camera_id,))
+        cursor.execute("SELECT * FROM camera WHERE camera_id = %s", (camera_id,))
         camera = cursor.fetchone()
 
         return {"data": camera, "status": "success"}
@@ -94,13 +87,14 @@ def update_camera_by_id(camera_id, room_data):
         cursor = connection.cursor()
         
         room_id = room_data['room_id']
+        stream_url = room_data['stream_url']
 
         query = """
-        UPDATE Camera 
-        SET room_id = %s
+        UPDATE camera 
+        SET room_id = %s, stream_url = %s
         WHERE camera_id = %s
         """
-        cursor.execute(query, (room_id, camera_id))
+        cursor.execute(query, (room_id, stream_url, camera_id))
         connection.commit()
 
         return {"status": "success", "message": "Camera room updated successfully!"}
@@ -120,7 +114,7 @@ def delete_camera_by_id(camera_id):
         connection = get_db_connection()
         cursor = connection.cursor()
 
-        cursor.execute("DELETE FROM Camera WHERE camera_id = %s", (camera_id,))
+        cursor.execute("DELETE FROM camera WHERE camera_id = %s", (camera_id,))
         connection.commit()
 
         return {"status": "success", "message": "Camera room deleted successfully!"}

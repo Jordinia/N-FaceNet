@@ -59,19 +59,27 @@ class Face:
 
     @requires_approval
     def upToServer(self):
-        sftp_host = "172.16.0.99"
+        sftp_host = "112.78.144.146"
         sftp_username = "jordinia"
         sftp_password = "3701"
+        sftp_port = 22098  # Specify the SSH port
         remote_folder = f"Employees/{self.employee_id}"
 
-        with pysftp.Connection(host=sftp_host, username=sftp_username, password=sftp_password) as sftp:
+        # Set up the connection options to ignore host key checking
+        cnopts = pysftp.CnOpts()
+        cnopts.hostkeys = None  # Disable host key checking
+
+        # Connect using the specified host, port, username, and password with the connection options
+        with pysftp.Connection(host=sftp_host, username=sftp_username, password=sftp_password, port=sftp_port, cnopts=cnopts) as sftp:
+            # Check if the remote folder exists, if not create it
             if not sftp.exists(remote_folder):
                 sftp.makedirs(remote_folder)
 
+            # Upload all files from the specified local folder
             for filename in os.listdir(self.folder_path):
                 local_path = os.path.join(self.folder_path, filename)
                 remote_path = f"{remote_folder}/{filename}"
-                sftp.put(local_path, remote_path)
+                sftp.put(local_path, remote_path)  # Upload file
                 print(f"Uploaded {filename} to {remote_path}")
 
         return {"status": "success", "message": "All files uploaded successfully."}

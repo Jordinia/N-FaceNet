@@ -1,13 +1,14 @@
-import mysql.connector
+import psycopg2
+from psycopg2.extras import RealDictCursor
 import config
 
 def get_db_connection():
-    return mysql.connector.connect(
-        host=config.MYSQL_HOST,
-        port=config.MYSQL_PORT,
-        user=config.MYSQL_USER,
-        password=config.MYSQL_PASSWORD,
-        database=config.MYSQL_DB
+    return psycopg2.connect(
+        host=config.POSTGRES_HOST,
+        port=config.POSTGRES_PORT,
+        user=config.POSTGRES_USER,
+        password=config.POSTGRES_PASSWORD,
+        database=config.POSTGRES_DB
     )
 
 """
@@ -43,13 +44,14 @@ def create_employee(employee_data):
         query = """
         INSERT INTO Employee (nik, name, role_id, current_room_id, gender, age, top_color_id, bottom_color_id) 
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        RETURNING employee_id
         """
         cursor.execute(query, (nik, name, role_id, current_room_id, gender, age, top_color_id, bottom_color_id))
         connection.commit()
 
-        employee_id = cursor.lastrowid
+        employee_id = cursor.fetchone()[0]  # Fetch the returned employee_id
 
-        return {"status": "success","employee_id": employee_id, "message": "Employee created successfully!"}
+        return {"status": "success", "employee_id": employee_id, "message": "Employee created successfully!"}
     
     except ValueError as ve:
         return {"status": "error", "message": str(ve)}
@@ -62,12 +64,10 @@ def create_employee(employee_data):
         cursor.close()
         connection.close()
 
-
-
 def get_employees():
     try:
         connection = get_db_connection()
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
 
         cursor.execute("SELECT * FROM Employee")
         employees = cursor.fetchall()
@@ -85,10 +85,11 @@ def get_employees():
         cursor.close()
         connection.close()
 
+
 def get_employee_by_id(employee_id):
     try:
         connection = get_db_connection()
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
 
         cursor.execute("SELECT * FROM Employee WHERE employee_id = %s", (employee_id,))
         employee = cursor.fetchone()
@@ -106,10 +107,11 @@ def get_employee_by_id(employee_id):
         cursor.close()
         connection.close()
 
+
 def get_employee_by(**conditions):
     try:
         connection = get_db_connection()
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
 
         where_clauses = []
         values = []
@@ -152,6 +154,7 @@ def get_employee_by(**conditions):
         cursor.close()
         connection.close()
 
+
 def update_employee_by_id(employee_id, employee):
     try:
         connection = get_db_connection()
@@ -187,6 +190,7 @@ def update_employee_by_id(employee_id, employee):
     finally:
         cursor.close()
         connection.close()
+
 
 def delete_employee_by_id(employee_id):
     try:

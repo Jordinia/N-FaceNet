@@ -1,22 +1,23 @@
-import mysql.connector
+import psycopg2
+from psycopg2.extras import RealDictCursor
 import config
 
 def get_db_connection():
-    return mysql.connector.connect(
-        host=config.MYSQL_HOST,
-        port=config.MYSQL_PORT,
-        user=config.MYSQL_USER,
-        password=config.MYSQL_PASSWORD,
-        database=config.MYSQL_DB
+    return psycopg2.connect(
+        host=config.POSTGRES_HOST,
+        port=config.POSTGRES_PORT,
+        user=config.POSTGRES_USER,
+        password=config.POSTGRES_PASSWORD,
+        database=config.POSTGRES_DB
     )
 
 """
 +----------+--------------+------+-----+---------+----------------+
 | Field    | Type         | Null | Key | Default | Extra          |
 +----------+--------------+------+-----+---------+----------------+
-| room_id  | tinyint      | NO   | PRI | NULL    | auto_increment |
+| room_id  | serial       | NO   | PRI | NULL    | auto_increment |
 | room     | varchar(100) | YES  |     | NULL    |                |
-| capacity | int          | YES  |     | NULL    |                |
+| capacity | integer      | YES  |     | NULL    |                |
 +----------+--------------+------+-----+---------+----------------+
 """
 
@@ -31,11 +32,11 @@ def create_room(Room):
         query = """
         INSERT INTO Room (room, capacity) 
         VALUES (%s, %s)
+        RETURNING room_id
         """
         cursor.execute(query, (room, capacity))
+        room_id = cursor.fetchone()[0]
         connection.commit()
-
-        room_id = cursor.lastrowid
 
         return {"status": "success", "room_id": room_id, "message": "Room created successfully!"}
     
@@ -49,12 +50,10 @@ def create_room(Room):
         cursor.close()
         connection.close()
 
-
-
 def get_rooms():
     try:
         connection = get_db_connection()
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
 
         cursor.execute("SELECT * FROM Room")
         rooms = cursor.fetchall()
@@ -74,7 +73,7 @@ def get_rooms():
 def get_room_by_id(room_id):
     try:
         connection = get_db_connection()
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
 
         cursor.execute("SELECT * FROM Room WHERE room_id = %s", (room_id,))
         Room = cursor.fetchone()
@@ -94,7 +93,7 @@ def get_room_by_id(room_id):
 def get_room_by(**conditions):
     try:
         connection = get_db_connection()
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
 
         where_clauses = []
         values = []
