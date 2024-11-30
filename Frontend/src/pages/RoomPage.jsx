@@ -127,7 +127,7 @@ const RoomPage = () => {
         </div>
 
         {/* Detected Users Table */}
-        <div className="mt-8">
+        <div className="mt-8 ">
           <h2 className="text-xl font-bold">Detected Users</h2>
           <table className="min-w-full mt-4 bg-white border border-gray-200">
             <thead>

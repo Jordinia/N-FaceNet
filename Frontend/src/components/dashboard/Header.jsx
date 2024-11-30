@@ -11,7 +11,7 @@ export const Header = () => {
         </button>
         <div className="flex items-center gap-3">
           <img
-            src="/api/placeholder/40/40"
+            src="http://fakeimg.pl/40x40"
             alt="Profile"
             className="w-10 h-10 rounded-full"
           />

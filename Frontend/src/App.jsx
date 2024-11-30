@@ -5,7 +5,7 @@ import VideoPage from './pages/VideoPage';
 
 function App() {
   const rooms = [/* your rooms data */];
-  
+
   return (
     <Router>
       <Routes>
