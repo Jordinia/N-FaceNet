@@ -13,7 +13,7 @@ const RoomPage = () => {
   const { id } = useParams();
   const rooms = [
     { id: 1, name: 'Common Room' },
-    { id: 2, name: 'Bedroom' },
+    { id: 2, name: 'Gym Room' },
     { id: 3, name: 'Kitchen' },
   ];
   
