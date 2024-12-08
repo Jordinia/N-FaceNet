@@ -27,22 +27,18 @@ def create_entry(entry):
         connection = get_db_connection()
         cursor = connection.cursor()
 
+        # Use RETURNING to get the auto-generated entry_id
         query = """
         INSERT INTO EntryLog (employee_id, checkin_time, checkout_time) 
-        VALUES (%s, %s, %s)
+        VALUES (%s, %s, %s) RETURNING entry_id
         """
         cursor.execute(query, (entry['employee_id'], entry['checkin_time'], entry['checkout_time']))
+
+        # Fetch the returned entry_id
+        entry_id = cursor.fetchone()[0]
         connection.commit()
 
-        entry_id = cursor.fetchone()[0]  # Get the last inserted entry ID
-
-        return {"status": "success","entry_id": entry_id, "message": "Entry created successfully!"}
-    
-    except ValueError as ve:
-        return {"status": "error", "message": str(ve)}
-    
-    except Exception as e:
-        return {"status": "error", "message": f"Database error: {str(e)}"}
+        return {"status": "success", "entry_id": entry_id, "message": "Entry created successfully!"}
     
     finally:
         cursor.close()

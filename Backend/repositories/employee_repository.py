@@ -24,6 +24,7 @@ def get_db_connection():
 | name            | varchar(255) | YES  |     | NULL    |                |
 | role_id         | tinyint      | YES  |     | NULL    |                |
 | nik             | varchar(10)  | YES  |     | NULL    |                |
+| face_path       | varchar(255) | YES  |     | NULL    |                |
 +-----------------+--------------+------+-----+---------+----------------+
 """
 
@@ -40,13 +41,14 @@ def create_employee(employee_data):
         age = employee_data['age']
         top_color_id = employee_data['top_color_id']
         bottom_color_id = employee_data['bottom_color_id']
+        face_path = employee_data['face_path']
 
         query = """
-        INSERT INTO Employee (nik, name, role_id, current_room_id, gender, age, top_color_id, bottom_color_id) 
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        INSERT INTO Employee (nik, name, role_id, current_room_id, gender, age, top_color_id, bottom_color_id, face_path) 
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
         RETURNING employee_id
         """
-        cursor.execute(query, (nik, name, role_id, current_room_id, gender, age, top_color_id, bottom_color_id))
+        cursor.execute(query, (nik, name, role_id, current_room_id, gender, age, top_color_id, bottom_color_id, face_path))
         connection.commit()
 
         employee_id = cursor.fetchone()[0]  # Fetch the returned employee_id
@@ -93,6 +95,8 @@ def get_employee_by_id(employee_id):
 
         cursor.execute("SELECT * FROM Employee WHERE employee_id = %s", (employee_id,))
         employee = cursor.fetchone()
+
+        employee = dict(employee)
 
         return {"data": employee, "status": "success"}
     

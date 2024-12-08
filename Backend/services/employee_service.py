@@ -54,7 +54,7 @@ def get_employee(employee_id):
     except:
         return {"data": None, "status": "error", "message": "Get employee failed"}
     
-def get_employee_by_params(gender=None, age=None, top_color_id=None, bottom_color_id=None, current_room_id=None, name=None):
+def get_employee_by_params(gender=None, age=None, top_color_id=None, bottom_color_id=None, current_room_id=None, name=None, nik=None):
     try:
 
         print(current_room_id)
@@ -71,6 +71,8 @@ def get_employee_by_params(gender=None, age=None, top_color_id=None, bottom_colo
             params['current_room_id'] = current_room_id
         if name is not None:
             params['name'] = name
+        if nik is not None:
+            params['nik'] = nik
 
         existing_employee = employee_repository.get_employee_by(**params)
         

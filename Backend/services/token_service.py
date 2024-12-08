@@ -31,7 +31,7 @@ def get_tokens():
     try:
         tokens = token_repository.get_tokens()
 
-        return {"count":len(tokens), "data": tokens['data'], "status": "success"}
+        return {"count":len(tokens['data']), "data": tokens['data'], "status": "success"}
     except KeyError:
         return {"status": "error", "message": "Invalid data"}
 

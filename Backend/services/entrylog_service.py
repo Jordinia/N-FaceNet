@@ -1,5 +1,6 @@
 from repositories import entrylog_repository
 from services import employee_service, color_service
+from machine_learning import determine_color, determine_employee_id
 from datetime import datetime
 
 # Create a new entry
@@ -20,6 +21,13 @@ def create_entry(data):
     
 def checkin(employee_id, data):
     try:
+        
+        captured_employee = determine_employee_id()
+        face_employee_id = captured_employee['data']['employee_id']
+
+        if employee_id != face_employee_id:
+            return {"data": None, "status": "error", "message": "data doesn't match the record"}
+
         # Get the employee details
         employee = employee_service.get_employee(employee_id)
         if employee['data'] is None:
@@ -29,6 +37,10 @@ def checkin(employee_id, data):
         existing_entry = entrylog_repository.get_entry_by(employee_id=employee_id, checkout_time=("IS", None))
         if len(existing_entry['data']) > 0:
             return {"data": None, "status": "error", "message": "Duplicate check-in"}
+        
+        captured_colors = determine_color()
+        data['top_color'] = captured_colors['top_color']
+        data['bottom_color'] = captured_colors['bottom_color']
 
         existing_top_Color = color_service.get_color_by_color(data['top_color'])
         if existing_top_Color['count'] == 0:
