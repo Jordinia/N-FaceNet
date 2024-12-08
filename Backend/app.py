@@ -234,4 +234,4 @@ app.register_blueprint(room_bp, url_prefix='/room')
 app.register_blueprint(camera_bp, url_prefix='/camera')
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)

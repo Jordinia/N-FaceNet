@@ -1,1 +1,6 @@
-
+Backend/__pycache__/*
+YOLO/services/__pycache__/*
+YOLO/runs/*
+YOLO/yolo-Weights/*
+YOLO/datasets/COCO
+YOLO/datasets/nfacenet
