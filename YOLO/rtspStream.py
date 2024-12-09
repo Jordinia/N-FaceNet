@@ -21,7 +21,8 @@ cap = cv2.VideoCapture()
 # cap = cv2.VideoCapture("http://100.111.29.103:4747/") # RTSP Stream
 # cap = cv2.VideoCapture("rtsp://admin:qwerty123@172.16.0.109:554/cam/realmonitor?channel=1&subtype=0") # RTSP Stream
 # cap.open("http://192.168.0.100:65000/video") # change the IP address of the stream
-cap.open("http://100.111.29.103:4747/video") # change the IP address of the stream
+# cap.open("http://100.111.29.103:4747/video") # change the IP address of the stream
+cap.open("http://100.116.184.72:12000/video") # change the IP address of the stream
 cap.set(3, 640)
 cap.set(4, 480)
 

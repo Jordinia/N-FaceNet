@@ -4,3 +4,6 @@ YOLO/runs/*
 YOLO/yolo-Weights/*
 YOLO/datasets/COCO
 YOLO/datasets/nfacenet
+YOLO/datasets/coco8
+YOLO/services/detected_persons
+YOLO/services/detected_persons2
