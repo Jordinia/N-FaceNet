@@ -11,8 +11,8 @@ person_model = YOLO("../yolo-Weights/yolo11m.engine")
 outfit_model = YOLO("../yolo-Weights/topbottomv2_fp32.engine")
 
 # Open the video stream
-# cap = cv2.VideoCapture("http://100.111.29.103:4747/video")
-cap = cv2.VideoCapture("http://100.116.184.72:12000/")
+cap = cv2.VideoCapture("http://100.79.3.2:4747/video")
+# cap = cv2.VideoCapture("http://100.116.184.72:12000/")
 
 # Object classes
 # classNames = ["person"]
