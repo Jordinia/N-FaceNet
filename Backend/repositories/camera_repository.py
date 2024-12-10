@@ -134,20 +134,21 @@ def get_camera_by(**conditions):
         cursor.close()
         connection.close()
 
-def update_camera_by_id(camera_id, room_data):
+def update_camera_by_id(camera_id, camera_data):
     try:
         connection = get_db_connection()
         cursor = connection.cursor()
         
-        room_id = room_data['room_id']
-        stream_url = room_data['stream_url']
+        room_id = camera_data['room_id']
+        stream_url = camera_data['stream_url']
+        camera_url = camera_data['camera_url']
 
         query = """
         UPDATE camera 
-        SET room_id = %s, stream_url = %s
+        SET room_id = %s, stream_url = %s, camera_url = %s
         WHERE camera_id = %s
         """
-        cursor.execute(query, (room_id, stream_url, camera_id))
+        cursor.execute(query, (room_id, stream_url, camera_url, camera_id))
         connection.commit()
 
         return {"status": "success", "message": "Camera room updated successfully!"}

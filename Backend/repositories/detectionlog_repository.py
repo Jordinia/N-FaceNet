@@ -20,7 +20,6 @@ def get_db_connection():
 | employee_id  | int        | NO   |     | NULL    |                |
 | room_id      | tinyint    | NO   |     | NULL    |                |
 | timestamp    | datetime   | NO   |     | NULL    |                |
-| confidence   | float(9,6) | NO   |     | NULL    |                |
 +--------------+------------+------+-----+---------+----------------+
 """
 
@@ -33,14 +32,13 @@ def create_detection(detection_data):
         employee_id = detection_data['employee_id']
         room_id = detection_data['room_id']
         timestamp = detection_data['timestamp']
-        confidence = detection_data['confidence']
 
         query = """
-        INSERT INTO DetectionLog (camera_id, employee_id, room_id, timestamp, confidence) 
-        VALUES (%s, %s, %s, %s, %s) 
+        INSERT INTO DetectionLog (camera_id, employee_id, room_id, timestamp) 
+        VALUES (%s, %s, %s, %s) 
         RETURNING detection_id
         """
-        cursor.execute(query, (camera_id, employee_id, room_id, timestamp, confidence))
+        cursor.execute(query, (camera_id, employee_id, room_id, timestamp))
         connection.commit()
 
         # Get the last inserted detection_id

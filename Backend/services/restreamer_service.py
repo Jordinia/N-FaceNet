@@ -1,5 +1,6 @@
 import cv2
 from mjpeg_streamer import MjpegServer, Stream
+from services import camera_service
 
 def restreamer(cam_id: int, cam_url: str):
     """
@@ -29,6 +30,10 @@ def restreamer(cam_id: int, cam_url: str):
     print(f"http://localhost:{port}/camera")
     print("--------------------------------")
     print("\nPress Ctrl+C to stop the server")
+    
+    result = camera_service.update_camera(cam_id, {"stream_url": f"http://localhost:{port}/camera"})
+    if result['data'] is None:
+        return {"data": None, "status": "error", "message": "Camera room not found"}
 
     try:
         while True:

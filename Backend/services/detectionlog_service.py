@@ -21,7 +21,6 @@ def create_detection(employee_id, Detection):
             "employee_id" : employee_id,
             "room_id" : camera_data['room_id'],
             "timestamp" : datetime.now(),
-            "confidence" : Detection['confidence']
         }
 
         detected_employee = {

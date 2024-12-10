@@ -1,7 +1,7 @@
 import threading
 from repositories import camera_repository
 from datetime import datetime
-from person_detection import post_employee_detection
+from services import restreamer_service
 
 def create_camera(camera):
     try:
@@ -21,8 +21,8 @@ def create_camera(camera):
 
         # Start post_employee_detection in a new thread
         detection_thread = threading.Thread(
-            target=post_employee_detection,
-            args=(new_camera,),  # Pass camera_id as an argument
+            target=restreamer_service.restreamer,
+            args=(new_camera['camera_id'], new_camera['camera_url']),  # Pass camera_id as an argument
             daemon=True
         )
         detection_thread.start()
@@ -61,10 +61,17 @@ def update_camera(camera_id, camera):
         existing_camera = camera_repository.get_camera_by_id(camera_id)
         if existing_camera['data'] is None:
             return {"data": None, "status": "error", "message": "Camera room not found"}
+        
+        
+        existing_camera_data = existing_camera['data']
 
+        existing_camera_data = dict(existing_camera_data)
         updated_camera = {
-            "room_id": camera.get('room_id', existing_camera['data']['room_id'])
+            "room_id": camera['room_id'] if camera.get('room_id') else existing_camera_data['room_id'],
+            "stream_url": camera['stream_url'] if camera.get('stream_url') else existing_camera_data['stream_url'],
+            "camera_url": camera['camera_url'] if camera.get('camera_url') else existing_camera_data['camera_url']
         }
+        print(updated_camera)
 
         result = camera_repository.update_camera_by_id(camera_id, updated_camera)
         updated_data = camera_repository.get_camera_by_id(camera_id)
