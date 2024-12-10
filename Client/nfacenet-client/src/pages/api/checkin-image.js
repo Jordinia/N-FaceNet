@@ -61,7 +61,7 @@ export default async function handler(req, res) {
             const base64Data = image.replace(/^data:image\/png;base64,/, "");
             const timestamp = Date.now();
             const fileName = `${prefix}-${timestamp}.png`;
-            const filePath = path.join(process.cwd(), "public", "uploads", employee_id.toString(), fileName);
+            const filePath = path.join(process.cwd(), "public", "checkin", employee_id.toString(), fileName);
 
             // Step 3: Ensure the "employee_id" directory exists and save the image
             const dir = path.dirname(filePath);
@@ -71,7 +71,7 @@ export default async function handler(req, res) {
             fs.writeFileSync(filePath, base64Data, "base64");
 
             // Step 4: Check if both the face and body images exist in the directory
-            const employeeDir = path.join(process.cwd(), "public", "uploads", employee_id.toString());
+            const employeeDir = path.join(process.cwd(), "public", "checkin", employee_id.toString());
             const files = fs.readdirSync(employeeDir);
 
             // Filter for images with the prefix 'F' (face) and 'B' (body)
@@ -98,7 +98,7 @@ export default async function handler(req, res) {
                 // Step 5: Make the POST request to your backend
                 const checkinResponse = await axios.post(`http://localhost:5000/entry/checkin/${employee_id}`, {
                     images,
-                    path: `/uploads/${employee_id}/${faceImage}`,
+                    path: `/checkin/${employee_id}/${faceImage}`,
                 });
 
                 // Log the response from the checkin POST request
@@ -111,8 +111,8 @@ export default async function handler(req, res) {
                 return res.status(200).json({
                     message: "Images saved, uploaded, and processed successfully!",
                     paths: [
-                        `/uploads/${employee_id}/${faceImage}`,
-                        `/uploads/${employee_id}/${bodyImage}`,
+                        `/checkin/${employee_id}/${faceImage}`,
+                        `/checkin/${employee_id}/${bodyImage}`,
                     ],
                 });
             }

@@ -2,8 +2,11 @@ from flask import Flask, request, jsonify, Blueprint
 from flask.views import MethodView
 from services import entrylog_service, detectionlog_service, employee_service, token_service, room_service, camera_service
 from datetime import datetime
+from flask_cors import CORS
 
 app = Flask(__name__)
+
+CORS(app)
 
 # Standardized response wrapper
 def create_response(result):

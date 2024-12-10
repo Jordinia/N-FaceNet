@@ -11,26 +11,32 @@ export default function Home() {
   const [photo2, setPhoto2] = useState(null);
   const [photoIndex, setPhotoIndex] = useState(1); // Counter for Body Camera photos
   const [employeeNik, setemployeeNik] = useState(""); // State to store input text
+  const [deviceIds, setDeviceIds] = useState({ faceCamera: null, bodyCamera: null });
+
+  // Function moved out of useEffect
+  const getVideoStream = async (deviceId, videoRef) => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { deviceId: { exact: deviceId } }
+      });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    } catch (err) {
+      console.error("Error accessing webcam: ", err);
+    }
+  };
 
   useEffect(() => {
-    const getVideoStream = async (deviceId, videoRef) => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { deviceId: { exact: deviceId } }
-        });
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-      } catch (err) {
-        console.error("Error accessing webcam: ", err);
-      }
-    };
-
     const getCameras = async () => {
       const devices = await navigator.mediaDevices.enumerateDevices();
       const videoDevices = devices.filter(device => device.kind === "videoinput");
 
       if (videoDevices.length >= 2) {
+        setDeviceIds({
+          faceCamera: videoDevices[0].deviceId,
+          bodyCamera: videoDevices[1].deviceId
+        });
         getVideoStream(videoDevices[0].deviceId, videoRef1);
         getVideoStream(videoDevices[1].deviceId, videoRef2);
       } else {
@@ -40,6 +46,17 @@ export default function Home() {
 
     getCameras();
   }, []);
+
+  const handleFlipCameras = () => {
+    setDeviceIds(prev => ({
+      faceCamera: prev.bodyCamera,
+      bodyCamera: prev.faceCamera
+    }));
+
+    // Swap the video streams
+    getVideoStream(deviceIds.bodyCamera, videoRef1);
+    getVideoStream(deviceIds.faceCamera, videoRef2);
+  };
 
   const handleCapturePhotos = () => {
     if (!employeeNik) {
@@ -81,9 +98,9 @@ export default function Home() {
 
   const sendImageToBackend = async (imageData, prefix, employeeNik) => {
     try {
-      console.log({ image: imageData, prefix, employee_nik: employeeNik })
+      console.log({ image: imageData, prefix, employee_nik: employeeNik });
 
-      const response = await fetch("/api/save-image", {
+      const response = await fetch("/api/checkin-image", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -135,6 +152,14 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {/* Flip Cameras Button */}
+      <button
+        onClick={handleFlipCameras}
+        className="mt-6 p-2 bg-gray-300 rounded-full shadow-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
+      >
+        Flip Cameras
+      </button>
 
       {/* Input Field for Photo Capture */}
       <input
