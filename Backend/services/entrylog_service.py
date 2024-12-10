@@ -21,13 +21,6 @@ def create_entry(data):
     
 def checkin(employee_id, data):
     try:
-        
-        captured_employee = determine_employee_id()
-        face_employee_id = captured_employee['data']['employee_id']
-
-        if employee_id != face_employee_id:
-            return {"data": None, "status": "error", "message": "data doesn't match the record"}
-
         # Get the employee details
         employee = employee_service.get_employee(employee_id)
         if employee['data'] is None:

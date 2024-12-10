@@ -21,6 +21,7 @@ def get_db_connection():
 | age             | int          | YES  |     | NULL    |                |
 | top_color_id    | tinyint      | YES  |     | NULL    |                |
 | bottom_color_id | tinyint      | YES  |     | NULL    |                |
+| dress_color_id  | tinyint      | YES  |     | NULL    |                |
 | name            | varchar(255) | YES  |     | NULL    |                |
 | role_id         | tinyint      | YES  |     | NULL    |                |
 | nik             | varchar(10)  | YES  |     | NULL    |                |
@@ -41,14 +42,15 @@ def create_employee(employee_data):
         age = employee_data['age']
         top_color_id = employee_data['top_color_id']
         bottom_color_id = employee_data['bottom_color_id']
+        dress_color_id = employee_data['dress_color_id']
         face_path = employee_data['face_path']
 
         query = """
-        INSERT INTO Employee (nik, name, role_id, current_room_id, gender, age, top_color_id, bottom_color_id, face_path) 
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        INSERT INTO Employee (nik, name, role_id, current_room_id, gender, age, top_color_id, bottom_color_id, dress_color_id, face_path) 
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         RETURNING employee_id
         """
-        cursor.execute(query, (nik, name, role_id, current_room_id, gender, age, top_color_id, bottom_color_id, face_path))
+        cursor.execute(query, (nik, name, role_id, current_room_id, gender, age, top_color_id, bottom_color_id, dress_color_id, face_path))
         connection.commit()
 
         employee_id = cursor.fetchone()[0]  # Fetch the returned employee_id
