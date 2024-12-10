@@ -12,8 +12,8 @@ print(device)
 
 # Load YOLO model
 # model = YOLO("runs/train13/weights/best.pt")
-model = YOLO("yolo-Weights/topbottom.pt")
-# model = YOLO("yolo11m.pt")
+# model = YOLO("yolo-Weights/topbottom.pt")
+model = YOLO("./yolo-Weights/yolo11m.pt")
 model.to(device)
 
 #cap = cv2.VideoCapture(0)
@@ -21,24 +21,22 @@ cap = cv2.VideoCapture()
 # cap = cv2.VideoCapture("http://100.111.29.103:4747/") # RTSP Stream
 # cap = cv2.VideoCapture("rtsp://admin:qwerty123@172.16.0.109:554/cam/realmonitor?channel=1&subtype=0") # RTSP Stream
 # cap.open("http://192.168.0.100:65000/video") # change the IP address of the stream
-# cap.open("http://100.111.29.103:4747/video") # change the IP address of the stream
-cap.open("http://100.116.184.72:12000/video") # change the IP address of the stream
-cap.set(3, 640)
-cap.set(4, 480)
+cap.open("http://100.79.3.2:4747/video") # change the IP address of the stream
+# cap.open("http://100.73.10.46:12000/video") # change the IP address of the stream
 
 # Object classes
-classNames = ["bottom", "dress", "top"]
+# classNames = ["bottom", "dress", "top"]
 # classNames = ["person"]
-# classNames = ["person", "bicycle", "car", "motorbike", "aeroplane", "bus", "train", "truck", "boat",
-#               "traffic light", "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat",
-#               "dog", "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe", "backpack", "umbrella",
-#               "handbag", "tie", "suitcase", "frisbee", "skis", "snowboard", "sports ball", "kite", "baseball bat",
-#               "baseball glove", "skateboard", "surfboard", "tennis racket", "bottle", "wine glass", "cup",
-#               "fork", "knife", "spoon", "bowl", "banana", "apple", "sandwich", "orange", "broccoli",
-#               "carrot", "hot dog", "pizza", "donut", "cake", "chair", "sofa", "pottedplant", "bed",
-#               "diningtable", "toilet", "tvmonitor", "laptop", "mouse", "remote", "keyboard", "cell phone",
-#               "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors",
-#               "teddy bear", "hair drier", "toothbrush"]
+classNames = ["person", "bicycle", "car", "motorbike", "aeroplane", "bus", "train", "truck", "boat",
+              "traffic light", "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat",
+              "dog", "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe", "backpack", "umbrella",
+              "handbag", "tie", "suitcase", "frisbee", "skis", "snowboard", "sports ball", "kite", "baseball bat",
+              "baseball glove", "skateboard", "surfboard", "tennis racket", "bottle", "wine glass", "cup",
+              "fork", "knife", "spoon", "bowl", "banana", "apple", "sandwich", "orange", "broccoli",
+              "carrot", "hot dog", "pizza", "donut", "cake", "chair", "sofa", "pottedplant", "bed",
+              "diningtable", "toilet", "tvmonitor", "laptop", "mouse", "remote", "keyboard", "cell phone",
+              "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors",
+              "teddy bear", "hair drier", "toothbrush"]
 
 # Create a resizable window
 cv2.namedWindow('Webcam', cv2.WINDOW_NORMAL)
