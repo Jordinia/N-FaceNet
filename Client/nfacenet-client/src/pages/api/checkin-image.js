@@ -49,7 +49,7 @@ export default async function handler(req, res) {
 
         try {
             // Step 1: Fetch employee_id using employee_nik
-            const employeeResponse = await axios.get(`http://localhost:5000/employee?nik=${employee_nik}`);
+            const employeeResponse = await axios.get(`http://100.71.234.28:5000/employee?nik=${employee_nik}`);
             const employeeData = employeeResponse.data.data;
             const employee_id = employeeData[0]?.employee_id;
 
@@ -96,7 +96,7 @@ export default async function handler(req, res) {
                 console.log("Upload to SFTP result (body):", bodyUploadResult);
 
                 // Step 5: Make the POST request to your backend
-                const checkinResponse = await axios.post(`http://localhost:5000/entry/checkin/${employee_id}`, {
+                const checkinResponse = await axios.post(`http://100.71.234.28:5000/entry/checkin/${employee_id}`, {
                     images,
                     path: `/checkin/${employee_id}/${faceImage}`,
                 });

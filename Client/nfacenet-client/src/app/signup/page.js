@@ -30,7 +30,7 @@ export default function RegisterForm() {
     e.preventDefault();
 
     try {
-      const response = await fetch("http://localhost:5000/employee", {
+      const response = await fetch("http://100.71.234.28:5000/employee", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

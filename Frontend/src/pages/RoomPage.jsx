@@ -17,7 +17,7 @@ const RoomPage = () => {
   useEffect(() => {
     const fetchRooms = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/room');
+        const response = await axios.get('http://127.0.0.1:5000/room');
         if (response.data && response.data.data) {
           setRooms(response.data.data);
         } else {
@@ -35,7 +35,7 @@ const RoomPage = () => {
   useEffect(() => {
     const fetchCameraData = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/camera/room/${id}`);
+        const response = await axios.get(`http://127.0.0.1:5000/camera/room/${id}`);
         if (response.data && response.data.data.length > 0) {
           setStreamUrl(response.data.data[0].stream_url);
           setCameras(response.data.data);
@@ -66,7 +66,7 @@ const RoomPage = () => {
 
   const handleAddCamera = async () => {
     try {
-      const response = await axios.post('http://localhost:5000/camera', {
+      const response = await axios.post('http://127.0.0.1:5000/camera', {
         room_id: id, // Gunakan room ID dari URL params
         camera_url: cameraUrl,
       });

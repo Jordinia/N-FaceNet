@@ -2,7 +2,7 @@ import time
 import requests
 
 def post_employee_detection(camera):
-    url = "http://localhost:5000/detection/employee/2"
+    url = "http://127.0.0.1:5000/detection/employee/2"
     payload = {
         "camera_id": 2,
         "confidence": 0.993754

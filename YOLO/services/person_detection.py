@@ -183,9 +183,9 @@ def process_camera_stream(cam_id: int, cam_url: str):
     cap.release()
     cv2.destroyAllWindows()
 
-# Example usage
-if __name__ == "__main__":
-    cam_id = 2
-    # cam_url = "http://100.111.29.103:4747/video"
-    cam_url = "rtsp://100.111.29.103:1945/"
-    process_camera_stream(cam_id, cam_url)
+# # Example usage
+# if __name__ == "__main__":
+#     cam_id = 2
+#     # cam_url = "http://100.111.29.103:4747/video"
+#     cam_url = "rtsp://100.111.29.103:1945/"
+#     process_camera_stream(cam_id, cam_url)

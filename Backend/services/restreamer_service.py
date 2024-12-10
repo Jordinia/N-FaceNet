@@ -25,13 +25,13 @@ def restreamer(cam_id: int, cam_url: str):
     server.add_stream(stream)
     server.start()
 
-    print(f"Streams index: http://localhost:{port}")
+    print(f"Streams index: http://127.0.0.1:{port}")
     print("Available streams:")
-    print(f"http://localhost:{port}/camera")
+    print(f"http://127.0.0.1:{port}/camera")
     print("--------------------------------")
     print("\nPress Ctrl+C to stop the server")
     
-    result = camera_service.update_camera(cam_id, {"stream_url": f"http://localhost:{port}/camera"})
+    result = camera_service.update_camera(cam_id, {"stream_url": f"http://127.0.0.1:{port}/camera"})
     if result['data'] is None:
         return {"data": None, "status": "error", "message": "Camera room not found"}
 

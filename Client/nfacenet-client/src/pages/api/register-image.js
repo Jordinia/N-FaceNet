@@ -69,7 +69,7 @@ async function registerToServer(token, employee_id, filenames) {
     console.log("Registering images:", data);
 
     try {
-        const endpointUrl = `http://localhost:5000/employee/face/${token}`;
+        const endpointUrl = `http://100.71.234.28:5000/employee/face/${token}`;
         const response = await axios.put(endpointUrl, data);
 
         if (response.status === 200 || response.status === 201) {
