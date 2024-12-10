@@ -73,7 +73,7 @@ def checkin(employee_id, data):
 
         # Prepare detection data
         detection = {
-            "current_room_id": 1,  # Example: hardcoded room, can be dynamic
+            "current_room_id": 1,
             "top_color_id": top_color_id,
             "bottom_color_id": bottom_color_id
         }

@@ -90,17 +90,19 @@ def update_employee(employee_id, data):
         existing_employee = employee_repository.get_employee_by_id(employee_id)
         if existing_employee['data'] == None:
             return {"data": None, "status": "error", "message": existing_employee['message']}
+        
+        existing_employee_data = existing_employee['data']
 
         employee_data = {
-            "current_room_id": data['current_room_id'] if data.get('current_room_id') else existing_employee['current_room_id'],
-            "top_color_id": data['top_color_id'] if data.get('top_color_id') else existing_employee['top_color_id'],
-            "bottom_color_id": data['bottom_color_id'] if data.get('bottom_color_id') else existing_employee['bottom_color_id'],
-            "gender": data['gender'] if data.get('gender') else existing_employee['gender'],
-            "name": data['name'] if data.get('name') else existing_employee['name'],
-            "nik": data['nik'] if data.get('nik') else existing_employee['nik'],
-            "role_id": data['role_id'] if data.get('role_id') else existing_employee['role_id'],
-            "face_path": data['face_path'] if data.get('face_path') else existing_employee['face_path'],
-            "age": data['age'] if data.get('age') else existing_employee['age']
+            "current_room_id": data['current_room_id'] if data.get('current_room_id') else existing_employee_data['current_room_id'],
+            "top_color_id": data['top_color_id'] if data.get('top_color_id') else existing_employee_data['top_color_id'],
+            "bottom_color_id": data['bottom_color_id'] if data.get('bottom_color_id') else existing_employee_data['bottom_color_id'],
+            "gender": data['gender'] if data.get('gender') else existing_employee_data['gender'],
+            "name": data['name'] if data.get('name') else existing_employee_data['name'],
+            "nik": data['nik'] if data.get('nik') else existing_employee_data['nik'],
+            "role_id": data['role_id'] if data.get('role_id') else existing_employee_data['role_id'],
+            "face_path": data['face_path'] if data.get('face_path') else existing_employee_data['face_path'],
+            "age": data['age'] if data.get('age') else existing_employee_data['age']
         }
 
         result = employee_repository.update_employee_by_id(employee_id, employee_data)

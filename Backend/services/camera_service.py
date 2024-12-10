@@ -5,7 +5,8 @@ def create_camera(camera):
     try:
         new_camera = {
             "created_date": datetime.now(),
-            "room_id": camera['room_id']
+            "room_id": camera['room_id'],
+            "stream_url": camera['stream_url'],
         }
         
         result = camera_repository.create_camera(new_camera)

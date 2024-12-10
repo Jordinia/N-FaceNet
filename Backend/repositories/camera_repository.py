@@ -11,6 +11,17 @@ def get_db_connection():
         database=config.POSTGRES_DB
     )
 
+"""
++--------------+--------------+------+-----+---------+----------------+
+| Field        | Type         | Null | Key | Default | Extra          |
++--------------+--------------+------+-----+---------+----------------+
+| camera_id    | serial       | NO   | PRI | NULL    | auto_increment |
+| room_id      | integer      | NO   |     | NULL    |                |
+| created_date | timestamp    | NO   |     | NULL    |                |
+| stream_url   | varchar(255) | NO   |     | NULL    |                |
++--------------+--------------+------+-----+---------+----------------+
+"""
+
 def create_camera(room_data):
     try:
         connection = get_db_connection()

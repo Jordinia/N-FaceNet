@@ -44,7 +44,7 @@ def create_detection(detection_data):
         connection.commit()
 
         # Get the last inserted detection_id
-        detection_id = cursor.fetchone()['detection_id']
+        detection_id = cursor.fetchone()[0]
 
         return {"status": "success", "message": "Detection created successfully!", "detection_id": detection_id}
     
