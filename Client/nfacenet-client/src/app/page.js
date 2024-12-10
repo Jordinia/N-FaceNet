@@ -8,6 +8,7 @@ export default function Home() {
   const videoRef2 = useRef(null);
   const canvasRef1 = useRef(null);
   const canvasRef2 = useRef(null);
+  const inputRef = useRef(null); // Ref for the input field
   const [photo1, setPhoto1] = useState(null);
   const [photo2, setPhoto2] = useState(null);
   const [photoIndex, setPhotoIndex] = useState(1); // Counter for Body Camera photos
@@ -15,6 +16,13 @@ export default function Home() {
   const [deviceIds, setDeviceIds] = useState({ faceCamera: null, bodyCamera: null });
   
   const router = useRouter(); // Initialize the useRouter hook
+
+  useEffect(() => {
+    // Autofocus the input field when the component mounts
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, []);
 
   // Function moved out of useEffect
   const getVideoStream = async (deviceId, videoRef) => {
@@ -174,6 +182,7 @@ export default function Home() {
 
       {/* Input Field for Photo Capture */}
       <input
+        ref={inputRef}
         type="text"
         placeholder="Enter Employee ID and Press Enter"
         value={employeeNik}

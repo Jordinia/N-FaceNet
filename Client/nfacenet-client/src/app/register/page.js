@@ -14,6 +14,14 @@ export default function Registration() {
     const [countdown, setCountdown] = useState(null); // State for countdown timer
     const [employee_id, setEmployee_id] = useState(null); // State for employee ID after fetching from token
     const [token, setToken] = useState(null); // State for token
+    const inputRef = useRef(null);
+
+    useEffect(() => {
+        // Autofocus the input field when the component mounts
+        if (inputRef.current) {
+            inputRef.current.focus();
+        }
+    }, []);
 
     // Initialize camera with a specific device ID
     const initializeCamera = async (deviceId) => {
@@ -131,11 +139,11 @@ export default function Registration() {
                 const tokenResponse = await axios.get(`http://localhost:5000/token/${inputValue}`);
                 const tokenData = tokenResponse.data;
                 console.log(tokenData)
-    
+
                 if (tokenData && tokenData.data && tokenData.data.length > 0) {
                     const employeeData = tokenData.data[0]; // Access the first item in the data array
                     const { employee_id, token } = employeeData; // Destructure employee_id and token
-    
+
                     if (employee_id) {
                         setEmployee_id(employee_id);
                         setToken(token);
@@ -151,7 +159,7 @@ export default function Registration() {
                 alert("Error fetching employee data.");
             }
         }
-    };    
+    };
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
@@ -205,6 +213,7 @@ export default function Registration() {
 
             {/* Input Field */}
             <input
+                ref={inputRef}
                 type="text"
                 placeholder="Enter Token"
                 value={inputValue}
