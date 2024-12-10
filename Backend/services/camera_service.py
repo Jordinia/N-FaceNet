@@ -1,8 +1,10 @@
+import sys
+import os
 import threading
 from repositories import camera_repository
 from datetime import datetime
 from services import restreamer_service
-from YOLO.services.person_detection import process_camera_stream
+from detections import person_detection
 
 def create_camera(camera):
     try:
@@ -23,18 +25,24 @@ def create_camera(camera):
         # Start restreamer_service in a new thread
         restreamer_thread = threading.Thread(
             target=restreamer_service.restreamer,
-            args=(new_camera['camera_id'], new_camera['camera_url']),  # Pass camera_id as an argument
+            args=(new_camera['camera_id'], new_camera['camera_url']),
+            name=f"RestreamerThread-{new_camera['camera_id']}",
             daemon=True
         )
         restreamer_thread.start()
 
         # Start person detection in a new thread
         detection_thread = threading.Thread(
-            target=process_camera_stream,
+            target=person_detection.process_camera_stream,
             args=(new_camera['camera_id'], new_camera['camera_url']),
+            name=f"DetectionThread-{new_camera['camera_id']}",
             daemon=True
         )
         detection_thread.start()
+        if detection_thread.is_alive():
+            print(f"detection_thread is running for camera ID {new_camera['camera_id']}")
+        else:
+            print(f"detection_thread failed to start for camera ID {new_camera['camera_id']}")
 
         return {
             "data": created_camera['data'],
