@@ -41,19 +41,6 @@ def process_camera_stream(cam_id, cam_url):
     frame_thread.daemon = True
     frame_thread.start()
 
-    # Toggle the LED on the camera (if applicable)
-    def toggle_camera_led():
-        base_url = cam_url.rstrip('/video')
-        led_url = f"{base_url}/cam/1/led_toggle"
-        response = requests.get(led_url)
-        if response.status_code == 200:
-            print("LED toggled successfully.")
-        else:
-            print(f"Failed to toggle LED. Status code: {response.status_code}")
-
-    # Call the function to toggle the LED
-    toggle_camera_led()
-
     # Create output directory for cropped images
     output_dir = "detected_persons"
     os.makedirs(output_dir, exist_ok=True)
@@ -168,3 +155,7 @@ def process_camera_stream(cam_id, cam_url):
     cv2.destroyAllWindows()
 
 # # TESTING
+cam_id = 1
+# cam_url = "rtsp://100.79.3.2:1945/"
+cam_url = "rtsp://100.111.29.103:1945/"
+process_camera_stream(cam_id, cam_url)

@@ -18,15 +18,6 @@ def check_outfit(image, model):
         annotated_image (numpy.ndarray): The image with bounding boxes and labels drawn.
         outfit (dict): Dictionary containing detected outfit components and their color information.
     """
-    # Load the image
-    # if isinstance(image_input, str):
-    #     image = cv2.imread(image_input)
-    #     if image is None:
-    #         raise FileNotFoundError(f"Image file not found: {image_input}")
-    # elif isinstance(image_input, np.ndarray):
-    #     image = image_input
-    # else:
-    #     raise ValueError("Input must be a file path or an image array.")
     if isinstance(image, str):
         # Load and resize the image from file path
         image = cv2.imread(image)
@@ -64,7 +55,7 @@ def check_outfit(image, model):
                 'class_name': class_name
             })
 
-    def process_detection(det):
+    def color_detection(det):
         x1, y1, x2, y2 = det['coords']
         class_name = det['class_name']
 
@@ -89,13 +80,13 @@ def check_outfit(image, model):
 
     # Use ThreadPoolExecutor to parallelize color detection
     with ThreadPoolExecutor() as executor:
-        executor.map(process_detection, detections)
+        executor.map(color_detection, detections)
 
     return image, outfit
 
-# # # TESTING
+# # TESTING
 # outfit_model = YOLO("../yolo-Weights/topbottomv2_fp32.engine")
-# image_path = "./outfit/contoh/contoh1.png"
+# image_path = "./outfit/contoh/contoh3.jpg"
 # # image_path = "./outfit/contoh/955082.jpg"
 # start_time = time.time()
 # image, outfit = check_outfit(image_path, outfit_model)
@@ -103,6 +94,6 @@ def check_outfit(image, model):
 
 # print(f"Time taken to call check_outfit: {end_time - start_time:.2f} seconds")
 # print(outfit)
-# # cv2.imshow("Detected Outfit", image)
-# # cv2.waitKey(0)
-# # cv2.destroyAllWindows()
+# cv2.imshow("Detected Outfit", image)
+# cv2.waitKey(0)
+# cv2.destroyAllWindows()
