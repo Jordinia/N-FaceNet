@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useRef, useEffect, useState } from "react";
+import { useRouter } from 'next/navigation'; // Import the useRouter hook
 
 export default function Home() {
   const videoRef1 = useRef(null);
@@ -12,6 +13,8 @@ export default function Home() {
   const [photoIndex, setPhotoIndex] = useState(1); // Counter for Body Camera photos
   const [employeeNik, setemployeeNik] = useState(""); // State to store input text
   const [deviceIds, setDeviceIds] = useState({ faceCamera: null, bodyCamera: null });
+  
+  const router = useRouter(); // Initialize the useRouter hook
 
   // Function moved out of useEffect
   const getVideoStream = async (deviceId, videoRef) => {
@@ -128,6 +131,11 @@ export default function Home() {
     }
   };
 
+  // New function to navigate to the register page
+  const handleGoToRegister = () => {
+    router.push('/register'); // Navigate to /register page
+  };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
       {/* Two Video Frames */}
@@ -199,6 +207,14 @@ export default function Home() {
           />
         </div>
       )}
+
+      {/* New Button to Go to Register Page */}
+      <button
+        onClick={handleGoToRegister}
+        className="mt-6 p-2 bg-green-500 text-white rounded-full shadow-md hover:bg-green-400 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2"
+      >
+        Register
+      </button>
     </div>
   );
 }
