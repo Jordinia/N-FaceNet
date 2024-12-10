@@ -54,10 +54,9 @@ def get_employee(employee_id):
     except:
         return {"data": None, "status": "error", "message": "Get employee failed"}
     
-def get_employee_by_params(gender=None, age=None, top_color_id=None, bottom_color_id=None, current_room_id=None, name=None, nik=None):
+def get_employee_by_params(gender=None, age=None, top_color_id=None, bottom_color_id=None, dress_color_id=None, name=None, current_room_id=None, nik=None):
     try:
 
-        print(current_room_id)
         params = {}
         if gender is not None: 
             params['gender'] = gender
@@ -67,12 +66,16 @@ def get_employee_by_params(gender=None, age=None, top_color_id=None, bottom_colo
             params['top_color_id'] = top_color_id
         if bottom_color_id is not None:
             params['bottom_color_id'] = bottom_color_id
-        if current_room_id is not None:
-            params['current_room_id'] = current_room_id
+        if dress_color_id is not None:
+            params['dress_color_id'] = dress_color_id
         if name is not None:
             params['name'] = name
+        if current_room_id is not None:
+            params['current_room_id'] = current_room_id
         if nik is not None:
             params['nik'] = nik
+
+        print(params)
 
         existing_employee = employee_repository.get_employee_by(**params)
         
@@ -97,6 +100,7 @@ def update_employee(employee_id, data):
             "current_room_id": data['current_room_id'] if data.get('current_room_id') else existing_employee_data['current_room_id'],
             "top_color_id": data['top_color_id'] if data.get('top_color_id') else existing_employee_data['top_color_id'],
             "bottom_color_id": data['bottom_color_id'] if data.get('bottom_color_id') else existing_employee_data['bottom_color_id'],
+            "dress_color_id": data['dress_color_id'] if data.get('dress_color_id') else existing_employee_data['dress_color_id'],
             "gender": data['gender'] if data.get('gender') else existing_employee_data['gender'],
             "name": data['name'] if data.get('name') else existing_employee_data['name'],
             "nik": data['nik'] if data.get('nik') else existing_employee_data['nik'],
@@ -119,11 +123,13 @@ def update_employee_detection(employee_id, data):
             return {"status": "error", "message": "Employee not found"}
 
         existing_employee_data = existing_employee['data']
+        print(existing_employee_data)
 
         employee = {
             "current_room_id" : data['current_room_id'],
-            "top_color_id" : data['top_color_id'],
-            "bottom_color_id" : data['bottom_color_id'],
+            "top_color_id" : data.get('top_color_id', None),
+            "bottom_color_id" : data.get('bottom_color_id', None),
+            "dress_color_id" : data.get('dress_color_id', None),
             "gender" : existing_employee_data['gender'],
             "name" : existing_employee_data['name'],
             "nik" : existing_employee_data['nik'],

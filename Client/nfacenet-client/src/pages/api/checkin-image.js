@@ -89,6 +89,8 @@ export default async function handler(req, res) {
                 const faceFilePath = path.join(employeeDir, faceImage);
                 const bodyFilePath = path.join(employeeDir, bodyImage);
 
+                console.log(faceImage)
+
                 const faceUploadResult = await upToServer(employee_id, faceFilePath, faceImage);
                 const bodyUploadResult = await upToServer(employee_id, bodyFilePath, bodyImage);
 
@@ -97,8 +99,7 @@ export default async function handler(req, res) {
 
                 // Step 5: Make the POST request to your backend
                 const checkinResponse = await axios.post(`http://localhost:5000/entry/checkin/${employee_id}`, {
-                    images,
-                    path: `/checkin/${employee_id}/${faceImage}`,
+                    faceImagePath: `Checkin/${employee_id}/${faceImage}`,
                 });
 
                 // Log the response from the checkin POST request

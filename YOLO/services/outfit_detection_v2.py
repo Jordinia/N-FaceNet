@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 from ultralytics import YOLO
 import time
-from color_detection_v4 import get_dominant_color
+from color_detection_v3 import get_dominant_color
 from concurrent.futures import ThreadPoolExecutor
 
 def check_outfit(image, model):
@@ -94,15 +94,15 @@ def check_outfit(image, model):
     return image, outfit
 
 # # # TESTING
-# outfit_model = YOLO("../yolo-Weights/topbottomv2_fp32.engine")
-# image_path = "./outfit/contoh/contoh1.png"
-# # image_path = "./outfit/contoh/955082.jpg"
-# start_time = time.time()
-# image, outfit = check_outfit(image_path, outfit_model)
-# end_time = time.time()
+outfit_model = YOLO("../yolo-Weights/topbottomv2.onnx")
+image_path = "./outfit/contoh/contoh1.png"
+# image_path = "./outfit/contoh/955082.jpg"
+start_time = time.time()
+image, outfit = check_outfit(image_path, outfit_model)
+end_time = time.time()
 
-# print(f"Time taken to call check_outfit: {end_time - start_time:.2f} seconds")
-# print(outfit)
-# # cv2.imshow("Detected Outfit", image)
-# # cv2.waitKey(0)
-# # cv2.destroyAllWindows()
+print(f"Time taken to call check_outfit: {end_time - start_time:.2f} seconds")
+print(outfit)
+# cv2.imshow("Detected Outfit", image)
+# cv2.waitKey(0)
+# cv2.destroyAllWindows()

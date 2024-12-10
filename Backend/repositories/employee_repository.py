@@ -175,13 +175,14 @@ def update_employee_by_id(employee_id, employee):
         top_color_id = employee['top_color_id']
         bottom_color_id = employee['bottom_color_id']
         face_path = employee['face_path']
+        dress_color_id = employee.get('dress_color_id', None)
 
         query = """
         UPDATE Employee 
-        SET nik = %s, name = %s, role_id = %s, current_room_id = %s, gender = %s, age = %s, top_color_id = %s, bottom_color_id = %s, face_path = %s
+        SET nik = %s, name = %s, role_id = %s, current_room_id = %s, gender = %s, age = %s, top_color_id = %s, bottom_color_id = %s, face_path = %s, dress_color_id = %s
         WHERE employee_id = %s
         """
-        cursor.execute(query, (nik, name, role_id, current_room_id, gender, age, top_color_id, bottom_color_id, face_path, employee_id))
+        cursor.execute(query, (nik, name, role_id, current_room_id, gender, age, top_color_id, bottom_color_id, face_path, dress_color_id, employee_id))
         connection.commit()
 
         return {"status": "success", "message": "Employee updated successfully!"}

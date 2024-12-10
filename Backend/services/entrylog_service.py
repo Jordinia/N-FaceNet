@@ -2,6 +2,8 @@ from repositories import entrylog_repository
 from services import employee_service, color_service
 from machine_learning import determine_color, determine_employee_id
 from datetime import datetime
+import pysftp
+import os
 
 # Create a new entry
 def create_entry(data):
@@ -21,41 +23,23 @@ def create_entry(data):
     
 def checkin(employee_id, data):
     try:
+        face_data = {
+            "employee_id": employee_id,
+            "faceImagePath": data['faceImagePath'],
+        }
+
+        download_face(face_data)
+
         # Get the employee details
         employee = employee_service.get_employee(employee_id)
         if employee['data'] is None:
             return {"data": None, "status": "error", "message": employee['message']}
+        
 
         # Check if there's an existing entry without a checkout time
         existing_entry = entrylog_repository.get_entry_by(employee_id=employee_id, checkout_time=("IS", None))
         if len(existing_entry['data']) > 0:
             return {"data": None, "status": "error", "message": "Duplicate check-in"}
-        
-        captured_colors = determine_color()
-        data['top_color'] = captured_colors['top_color']
-        data['bottom_color'] = captured_colors['bottom_color']
-
-        existing_top_Color = color_service.get_color_by_color(data['top_color'])
-        if existing_top_Color['count'] == 0:
-            new_Color = {
-                "color": data['top_color']
-            }
-            top_Color = color_service.create_color(new_Color)['data']
-        else: 
-            top_Color = existing_top_Color['data'][0]
-
-        top_color_id = top_Color['color_id']
-
-        existing_bottom_Color = color_service.get_color_by_color(data['bottom_color'])
-        if existing_bottom_Color['count'] == 0:
-            new_Color = {
-                "color": data['bottom_color']
-            }
-            bottom_Color = color_service.create_color(new_Color)['data']
-        else: 
-            bottom_Color = existing_bottom_Color['data'][0]
-
-        bottom_color_id = bottom_Color['color_id']
 
         # Prepare entry data for check-in
         entry = {
@@ -67,10 +51,12 @@ def checkin(employee_id, data):
         # Prepare detection data
         detection = {
             "current_room_id": 1,
-            "top_color_id": top_color_id,
-            "bottom_color_id": bottom_color_id
+            "top_color_id": data.get('top_color_id', 1),
+            "bottom_color_id": data.get('bottom_color_id', 2),
+            "dress_color_id": data.get('dress_color_id', None)
         }
 
+        print('dor')
         # Save the entry and update employee detection data
         result = entrylog_repository.create_entry(entry)
         employee = employee_service.update_employee_detection(employee_id, detection)
@@ -161,11 +147,36 @@ def update_entry(entry_id, data):
         return {"status": "error", "message": "Invalid data"} 
 
 # Delete an entry
-def delete_entry(entry_id):
+def download_face(face_data):
+    # SFTP server credentials
+    sftp_host = "112.78.144.146"
+    sftp_username = "jordinia"
+    sftp_password = "3701"
+    sftp_port = 22098  # Specify the SSH port
+    
     try:
-        entry = get_entry(entry_id)
-        result = entrylog_repository.delete_entry_by_id(entry_id)
+        # Set up the connection options to ignore host key checking
+        cnopts = pysftp.CnOpts()
+        cnopts.hostkeys = None  # Disable host key checking
 
-        return {"data": entry['data'], "status": "success", "message": result["message"]} 
-    except KeyError:
-        return {"status": "error", "message": "Invalid data"} 
+        # Set up SFTP connection with the specified port
+        with pysftp.Connection(host=sftp_host, username=sftp_username, password=sftp_password, port=sftp_port, cnopts=cnopts) as sftp:
+            # Extract the remote path from face_data
+            remote_file_path = face_data['faceImagePath']  # Example: 'Checkin/2/1733871835419.png'
+            
+            # Extract the local folder and filename
+            local_folder_path = os.path.dirname(remote_file_path)
+            local_file_path = os.path.join(local_folder_path, os.path.basename(remote_file_path))
+
+            # Ensure local folder exists
+            os.makedirs(local_folder_path, exist_ok=True)
+
+            # Download the file
+            print(f"Downloading file from remote path: {remote_file_path}")
+            sftp.get(remote_file_path, local_file_path)
+            print(f"Downloaded {remote_file_path} to {local_file_path}")
+
+        print("File download completed.")
+
+    except Exception as e:
+        print(f"Error: {e}")

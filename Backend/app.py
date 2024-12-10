@@ -103,14 +103,17 @@ class EmployeeAPI(MethodView):
             age = request.args.get('age')
             top_color_id = request.args.get('top_color_id')
             bottom_color_id = request.args.get('bottom_color_id')
+            dress_color_id = request.args.get('dress_color_id')
             name = request.args.get('name')
             current_room_id = request.args.get('current_room_id')
             nik = request.args.get('nik')
 
-            if gender is None and age is None and top_color_id is None and bottom_color_id is None and name is None and current_room_id is None and nik is None:
+            print(dress_color_id)
+
+            if gender is None and age is None and top_color_id is None and bottom_color_id is None and dress_color_id is None and name is None and current_room_id is None and nik is None:
                 result = employee_service.get_employees()
             else:
-                result = employee_service.get_employee_by_params(gender, age, top_color_id, bottom_color_id, current_room_id, name, nik)
+                result = employee_service.get_employee_by_params(gender, age, top_color_id, bottom_color_id, dress_color_id, name, current_room_id, nik)
             print(result)
             return jsonify(create_response(result)), 200
         else:
