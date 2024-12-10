@@ -12,7 +12,7 @@ export const RoomsList = ({ rooms, handleAddRoom }) => {
   // Fetch current people count for each room
   const fetchRoomPeopleCount = async (roomId) => {
     try {
-      const response = await fetch(`http://localhost:5000/employee?current_room_id=${roomId}`);
+      const response = await fetch(`http://127.0.0.1:5000/employee?current_room_id=${roomId}`);
       const data = await response.json();
       
       // Return the count (number of people) in the room

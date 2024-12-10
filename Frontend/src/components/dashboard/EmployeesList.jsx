@@ -15,7 +15,7 @@ export const EmployeesList = () => {
   // Fetch employees from API
   const fetchEmployees = async (query = '') => {
     try {
-      const response = await axios.get(`http://localhost:5000/employee?name=${query}`);
+      const response = await axios.get(`http://127.0.0.1:5000/employee?name=${query}`);
       const employees = response.data.data.map((employee) => ({
         ...employee,
         location: employee.room || 'Away',
@@ -42,7 +42,7 @@ export const EmployeesList = () => {
 
     try {
       const newEmployee = { nik, name, gender: gender === '1', age: parseInt(age, 10) };
-      const response = await axios.post('http://localhost:5000/employee', newEmployee);
+      const response = await axios.post('http://127.0.0.1:5000/employee', newEmployee);
 
       if (response.data.status === 'success') {
         message.success('Employee added successfully');

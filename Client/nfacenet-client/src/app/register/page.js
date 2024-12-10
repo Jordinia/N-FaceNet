@@ -136,7 +136,7 @@ export default function Registration() {
     const handleKeyDown = async (e) => {
         if (e.key === "Enter" && inputValue.trim() !== "") {
             try {
-                const tokenResponse = await axios.get(`http://localhost:5000/token/${inputValue}`);
+                const tokenResponse = await axios.get(`http://100.71.234.28:5000/token/${inputValue}`);
                 const tokenData = tokenResponse.data;
                 console.log(tokenData)
 

@@ -86,13 +86,13 @@ class Face:
 
     @requires_approval
     def register(self):
-        endpoint_url = f"http://localhost:5000/employee/face/{self.token}"
+        endpoint_url = f"http://127.0.0.1:5000/employee/face/{self.token}"
 
         response = requests.put(endpoint_url, json=self.json_data)
         return response.json()
 
     def findToken(self):
-        endpoint_url = f"http://localhost:5000/token/{self.token}"
+        endpoint_url = f"http://127.0.0.1:5000/token/{self.token}"
         try:
             response = requests.get(endpoint_url)
             if response.status_code == 200:

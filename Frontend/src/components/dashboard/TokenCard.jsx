@@ -4,7 +4,7 @@ import axios from 'axios';
 export const TokenCard = ({ token, onAction }) => {
     const handleActionClick = async () => {
         try {
-            await axios.put(`http://localhost:5000/token/${token.token_id}`);
+            await axios.put(`http://127.0.0.1:5000/token/${token.token_id}`);
             onAction(); // Trigger a refetch
         } catch (error) {
             console.error('Error performing token action:', error);

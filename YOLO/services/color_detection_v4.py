@@ -80,10 +80,11 @@ def get_dominant_color(image, k=5):
 
     return closest_color_name, closest_color_id, dominant_color_rgb[0, 0]
 
-# TESTING
-# Example usage with image path
-# image_path = input("Enter the path to the image file: ")
-# color_name, color_id, rgb = get_dominant_color(image_path)
+# # TESTING
+# # Example usage with image path
+# image = input("Enter the path to the image file: ")
+# image = cv2.imread(image)
+# color_name, color_id, rgb = get_dominant_color(image)
 # print(f"Dominant Color: {color_name}, ID: {color_id}, RGB: {rgb}")
 
 # Example usage with image array (e.g., outfit_crop from outfit_detection.py)

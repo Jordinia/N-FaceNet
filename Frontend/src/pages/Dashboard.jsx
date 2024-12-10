@@ -12,7 +12,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchRooms = async () => {
       try {
-        const response = await fetch('http://localhost:5000/room');
+        const response = await fetch('http://127.0.0.1:5000/room');
         if (!response.ok) {
           throw new Error(`Failed to fetch rooms: ${response.statusText}`);
         }
@@ -38,7 +38,7 @@ const Dashboard = () => {
     const newRoom = { room, capacity };
 
     try {
-      const response = await fetch('http://localhost:5000/room', {
+      const response = await fetch('http://127.0.0.1:5000/room', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
