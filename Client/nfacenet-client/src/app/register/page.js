@@ -206,7 +206,7 @@ export default function Registration() {
             {/* Input Field */}
             <input
                 type="text"
-                placeholder="Enter your details (e.g. NIK)"
+                placeholder="Enter Token"
                 value={inputValue}
                 onChange={handleInputChange}
                 onKeyDown={handleKeyDown}

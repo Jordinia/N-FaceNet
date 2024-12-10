@@ -92,6 +92,46 @@ def get_camera_by_id(camera_id):
         cursor.close()
         connection.close()
 
+def get_camera_by(**conditions):
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
+
+        where_clauses = []
+        values = []
+
+        for column, condition in conditions.items():
+            if isinstance(condition, tuple):
+                operator, value = condition
+                if operator in ["IS", "IS NOT"] and value is None:
+                    # For IS NULL or IS NOT NULL, no placeholder is needed
+                    where_clauses.append(f"{column} {operator} NULL")
+                else:
+                    where_clauses.append(f"{column} {operator} %s")
+                    values.append(value)
+            else:
+                # Default to equality
+                where_clauses.append(f"{column} = %s")
+                values.append(condition)
+
+        where_clause = " AND ".join(where_clauses)
+        query = f"SELECT * FROM Camera WHERE {where_clause}"
+
+        cursor.execute(query, tuple(values))
+        entry = cursor.fetchall()
+
+        return {"data": entry, "status": "success"}
+    
+    except ValueError as ve:
+        return {"status": "error", "message": str(ve)}
+    
+    except Exception as e:
+        return {"status": "error", "message": f"Database error: {str(e)}"}
+    
+    finally:
+        cursor.close()
+        connection.close()
+
 def update_camera_by_id(camera_id, room_data):
     try:
         connection = get_db_connection()

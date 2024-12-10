@@ -1,23 +1,48 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
+import axios from 'axios';
 
 const RoomPage = () => {
-  const [streamUrl, setStreamUrl] = useState("http://10.29.254.161:65000/video");
-  const videoRef = useRef(null);  // Ref for the video element
+  const [streamUrl, setStreamUrl] = useState(null); // Dynamically set from API
+  const videoRef = useRef(null); // Ref for the video element
   const [cameras, setCameras] = useState([]);
   const [showAddCamera, setShowAddCamera] = useState(false);
   const [newCamera, setNewCamera] = useState({ name: '', url: '' });
-  const [detectedUsers, setDetectedUsers] = useState([]); // Store detected user data
+  const [detectedUsers, setDetectedUsers] = useState([]);
+  const { id } = useParams(); // Room ID from URL params
 
-  const { id } = useParams();
   const rooms = [
     { id: 1, name: 'Common Room' },
     { id: 2, name: 'Bedroom' },
     { id: 3, name: 'Kitchen' },
   ];
-  
-  const room = rooms.find(r => r.id === parseInt(id));
+  const room = rooms.find((r) => r.id === parseInt(id));
+
+  useEffect(() => {
+    // Fetch camera data for the room
+    const fetchCameraData = async () => {
+      try {
+        const response = await axios.get(`http://localhost:5000/camera/room/${id}`);
+        if (response.data && response.data.data.length > 0) {
+          const cameraData = response.data.data[0]; // Assuming the first camera for the room
+          setStreamUrl(cameraData.stream_url);
+          setCameras(response.data.data); // Store all cameras
+        } else {
+          console.error('No cameras found for this room');
+        }
+      } catch (error) {
+        console.error('Error fetching camera data:', error);
+      }
+    };
+
+    fetchCameraData();
+
+    // Cleanup the stream connection when leaving the page
+    return () => {
+      setStreamUrl(null); // This will close the connection by removing the stream URL
+    };
+  }, [id]); // Depend on `id` to refetch when the room ID changes
 
   const handleAddCamera = () => {
     if (newCamera.name && newCamera.url) {
@@ -29,7 +54,7 @@ const RoomPage = () => {
   };
 
   const handleDeleteCamera = (cameraId) => {
-    setCameras(cameras.filter(camera => camera.id !== cameraId));
+    setCameras(cameras.filter((camera) => camera.id !== cameraId));
   };
 
   const simulateUserDetection = () => {
@@ -39,7 +64,7 @@ const RoomPage = () => {
       age: Math.floor(Math.random() * 60) + 18, // Age between 18 and 78
       clothing: 'Casual', // Example clothing
     };
-    setDetectedUsers(prevUsers => [...prevUsers, newUser]);
+    setDetectedUsers((prevUsers) => [...prevUsers, newUser]);
     setTimeout(simulateUserDetection, 2000); // Repeat detection every 2 seconds
   };
 
@@ -57,77 +82,31 @@ const RoomPage = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Camera Cards */}
-          {cameras.map(camera => (
-            <div key={camera.id} className="bg-white rounded-xl shadow-sm p-4">
+          {cameras.map((camera) => (
+            <div key={camera.camera_id} className="bg-white rounded-xl shadow-sm p-4">
               <div className="flex justify-between items-start mb-4">
-                <h3 className="font-medium">{camera.name}</h3>
+                <h3 className="font-medium">Camera {camera.camera_id}</h3>
                 <button
-                  onClick={() => handleDeleteCamera(camera.id)}
+                  onClick={() => handleDeleteCamera(camera.camera_id)}
                   className="text-red-500 hover:text-red-600"
                 >
                   <Trash2 className="w-5 h-5" />
                 </button>
               </div>
               <div className="aspect-video bg-gray-100 rounded-lg mb-4 overflow-hidden">
-                {/* Camera feed */}
+                {/* MJPEG stream using img tag */}
                 <img
-                  src={streamUrl}
-                  alt="MJPEG Stream"
+                  src={camera.stream_url}
+                  alt={`Camera ${camera.camera_id}`}
                   className="w-full h-full object-cover"
-                  loading="eager"
                 />
               </div>
             </div>
           ))}
-
-          {/* Add Camera Button/Form */}
-          <div className="bg-gray-100 rounded-xl p-4">
-            {showAddCamera ? (
-              <div className="space-y-4">
-                <h3 className="font-medium">Add New Camera</h3>
-                <input
-                  type="text"
-                  placeholder="Camera Name"
-                  className="w-full p-2 rounded border"
-                  value={newCamera.name}
-                  onChange={e => setNewCamera({ ...newCamera, name: e.target.value })}
-                />
-                <input
-                  type="text"
-                  placeholder="Stream URL"
-                  className="w-full p-2 rounded border"
-                  value={newCamera.url}
-                  onChange={e => setNewCamera({ ...newCamera, url: e.target.value })}
-                />
-                <div className="flex gap-2">
-                  <button
-                    onClick={handleAddCamera}
-                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                  >
-                    Add Camera
-                  </button>
-                  <button
-                    onClick={() => setShowAddCamera(false)}
-                    className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <button
-                onClick={() => setShowAddCamera(true)}
-                className="w-full h-full flex flex-col items-center justify-center gap-2 text-gray-600 hover:text-gray-800"
-              >
-                <Plus className="w-8 h-8" />
-                <span>Add Camera</span>
-              </button>
-            )}
-          </div>
         </div>
 
         {/* Detected Users Table */}
-        <div className="mt-8 ">
+        <div className="mt-8">
           <h2 className="text-xl font-bold">Detected Users</h2>
           <table className="min-w-full mt-4 bg-white border border-gray-200">
             <thead>
@@ -139,7 +118,7 @@ const RoomPage = () => {
               </tr>
             </thead>
             <tbody>
-              {detectedUsers.map(user => (
+              {detectedUsers.map((user) => (
                 <tr key={user.id}>
                   <td className="py-2 px-4 border-b">{user.id}</td>
                   <td className="py-2 px-4 border-b">{user.gender}</td>

@@ -179,12 +179,15 @@ class CameraAPI(MethodView):
         result = camera_service.update_camera(camera_id, data)
         return jsonify(create_response(result)), 200 if result['status'] == 'success' else 400
 
-    def get(self, camera_id=None):
-        if camera_id is None:
+    def get(self, camera_id=None, room_id=None):
+        if camera_id is None and room_id is None:
             result = camera_service.get_cameras()
             return jsonify(create_response(result)), 200
-        else:
+        elif room_id is None:
             result = camera_service.get_camera(camera_id)
+            return jsonify(create_response(result)), 200 if result['status'] == 'success' else 404
+        elif camera_id is None:
+            result = camera_service.get_camera_by_room(room_id)
             return jsonify(create_response(result)), 200 if result['status'] == 'success' else 404
         
     def delete(self, camera_id):
@@ -218,6 +221,7 @@ room_bp.add_url_rule('/<int:room_id>', view_func=room_view, methods=['GET', 'DEL
 # Register the CameraPI view
 camera_view = CameraAPI.as_view('camera_api')
 camera_bp.add_url_rule('', view_func=camera_view, methods=['POST', 'GET'])
+camera_bp.add_url_rule('room/<int:room_id>', view_func=camera_view, methods=['GET'])
 camera_bp.add_url_rule('/<int:camera_id>', view_func=camera_view, methods=['GET', 'DELETE', 'PUT'])
 
 # Register the TokenAPI view

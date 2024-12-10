@@ -35,8 +35,9 @@ def get_camera(camera_id):
     except:
         return {"data": None, "status": "error", "message": "Get camera room failed"}
     
-def get_camera_by_name(room_id):
+def get_camera_by_room(room_id):
     try:
+        print(room_id)
         existing_camera = camera_repository.get_camera_by(room_id=room_id)
         return {"count": len(existing_camera['data']), "data": existing_camera['data'], "status": "success"}
     except:

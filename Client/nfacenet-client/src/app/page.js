@@ -98,26 +98,29 @@ export default function Home() {
 
   const sendImageToBackend = async (imageData, prefix, employeeNik) => {
     try {
-      console.log({ image: imageData, prefix, employee_nik: employeeNik });
+        console.log({ image: imageData, prefix, employee_nik: employeeNik });
 
-      const response = await fetch("/api/checkin-image", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ image: imageData, prefix, employee_nik: employeeNik }),
-      });
+        const response = await fetch("/api/checkin-image", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ image: imageData, prefix, employee_nik: employeeNik }),
+        });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
-      const result = await response.json();
-      console.log("Image saved successfully:", result);
+        const result = await response.json();
+        console.log("Image saved successfully:", result);
+
+        // Refresh the page on success
+        window.location.reload();
     } catch (error) {
-      console.error("Error sending image to backend:", error);
+        console.error("Error sending image to backend:", error);
     }
-  };
+};
 
   const handleInputKeyDown = (event) => {
     if (event.key === "Enter") {
