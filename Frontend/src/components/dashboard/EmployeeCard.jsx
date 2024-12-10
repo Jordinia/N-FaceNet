@@ -11,7 +11,6 @@ export const EmployeeCard = ({ employee }) => {
         />
         <div>
           <div className="font-semibold">{employee.name}</div>
-          <div className="text-sm text-gray-500">{employee.role}</div>
         </div>
       </div>
       <div className="text-sm text-gray-500">

@@ -111,16 +111,10 @@ def get_token_by(**conditions):
                     values.append(condition)
 
         where_clause = " AND ".join(where_clauses)
-        query = f"SELECT * FROM Token WHERE {where_clause}"
+        query = f"SELECT * FROM employee_token_view WHERE {where_clause}"
 
         cursor.execute(query, tuple(values))
         token = cursor.fetchall()
-
-        if len(token) == 1:
-            token = token[0]
-
-        if token == []:
-            token = None
 
         return {"data": token, "status": "success"}
     

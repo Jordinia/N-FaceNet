@@ -71,7 +71,7 @@ def get_employees():
         connection = get_db_connection()
         cursor = connection.cursor(cursor_factory=RealDictCursor)
 
-        cursor.execute("SELECT * FROM Employee")
+        cursor.execute("SELECT * FROM employee_room_view")
         employees = cursor.fetchall()
 
         return {"data": employees, "status": "success"}
@@ -93,7 +93,7 @@ def get_employee_by_id(employee_id):
         connection = get_db_connection()
         cursor = connection.cursor(cursor_factory=RealDictCursor)
 
-        cursor.execute("SELECT * FROM Employee WHERE employee_id = %s", (employee_id,))
+        cursor.execute("SELECT * FROM employee_room_view WHERE employee_id = %s", (employee_id,))
         employee = cursor.fetchone()
 
         employee = dict(employee)
@@ -140,7 +140,7 @@ def get_employee_by(**conditions):
                 values.append(condition)
 
         where_clause = " AND ".join(where_clauses)
-        query = f"SELECT * FROM Employee WHERE {where_clause}"
+        query = f"SELECT * FROM employee_room_view WHERE {where_clause}"
 
         cursor.execute(query, tuple(values))
         employee = cursor.fetchall()

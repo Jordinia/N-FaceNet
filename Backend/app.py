@@ -22,7 +22,7 @@ def create_response(result):
     if result.get('message'):
         response["message"] = result['message']
 
-    if result.get('count'):
+    if result.get('count') != None:
         response["count"] = result['count']
 
     if result.get('authentication'):
@@ -111,7 +111,7 @@ class EmployeeAPI(MethodView):
                 result = employee_service.get_employees()
             else:
                 result = employee_service.get_employee_by_params(gender, age, top_color_id, bottom_color_id, current_room_id, name, nik)
-
+            print(result)
             return jsonify(create_response(result)), 200
         else:
             result = employee_service.get_employee(employee_id)
@@ -132,7 +132,7 @@ class TokenAPI(MethodView):
 
     def get(self, token_id=None, token=None):
         if token_id is None and token is None:
-            result = token_service.get_tokens()
+            result = token_service.get_approval_token()
             return jsonify(create_response(result)), 200
         elif token_id is not None:
             result = token_service.get_token(token_id)
@@ -237,4 +237,4 @@ app.register_blueprint(room_bp, url_prefix='/room')
 app.register_blueprint(camera_bp, url_prefix='/camera')
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(debug=True)

@@ -129,21 +129,29 @@ export default function Registration() {
         if (e.key === "Enter" && inputValue.trim() !== "") {
             try {
                 const tokenResponse = await axios.get(`http://localhost:5000/token/${inputValue}`);
-                const tokenData = tokenResponse.data.data;
-
-                if (tokenData && tokenData.employee_id) {
-                    setEmployee_id(tokenData.employee_id);
-                    setToken(tokenData.token);
-                    startPhotoCapture(tokenData.employee_id, tokenData.token);
+                const tokenData = tokenResponse.data;
+                console.log(tokenData)
+    
+                if (tokenData && tokenData.data && tokenData.data.length > 0) {
+                    const employeeData = tokenData.data[0]; // Access the first item in the data array
+                    const { employee_id, token } = employeeData; // Destructure employee_id and token
+    
+                    if (employee_id) {
+                        setEmployee_id(employee_id);
+                        setToken(token);
+                        startPhotoCapture(employee_id, token);
+                    } else {
+                        alert("Employee ID not found in token data.");
+                    }
                 } else {
-                    alert("Invalid token or employee ID not found.");
+                    alert("Invalid token or no data found.");
                 }
             } catch (error) {
                 console.error("Error fetching employee data:", error);
                 alert("Error fetching employee data.");
             }
         }
-    };
+    };    
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">

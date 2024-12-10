@@ -1,23 +1,72 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Header } from '../components/dashboard/Header';
 import { RoomsList } from '../components/dashboard/RoomsList';
 import { EmployeesList } from '../components/dashboard/EmployeesList';
+import { TokenList } from '../components/dashboard/TokenList';
 import { WarningPanel } from '../components/dashboard/WarningPanel';
 
-// Dummy Data
-import { rooms } from '../utils/dummy/roomData';
-
 const Dashboard = () => {
-  const handleAddRoom = ({ name, capacity }) => {
-    const newRoom = {
-      id: Date.now(),
-      name,
-      image: 'http://fakeimg.pl/400x300',
-      capacity
+  const [rooms, setRooms] = useState([]);
+
+  // Fetch rooms initially
+  useEffect(() => {
+    const fetchRooms = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/room');
+        if (!response.ok) {
+          throw new Error(`Failed to fetch rooms: ${response.statusText}`);
+        }
+        const data = await response.json();
+        if (data.status === 'success') {
+          const formattedRooms = data.data.map(room => ({
+            room_id: room.room_id,
+            room: room.room,
+            capacity: room.capacity,
+            image: `https://placehold.co/400x400?text=${encodeURIComponent(room.room)}`,
+          }));
+          setRooms(formattedRooms);
+        }
+      } catch (error) {
+        console.error('Error fetching rooms:', error);
+      }
+    };
+
+    fetchRooms();
+  }, []);
+
+  const handleAddRoom = async ({ room, capacity }) => {
+    const newRoom = { room, capacity };
+
+    try {
+      const response = await fetch('http://localhost:5000/room', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newRoom),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to add room: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      console.log('Room added successfully:', result);
+
+      // Add the new room to the rooms list
+      setRooms(prevRooms => [
+        ...prevRooms,
+        {
+          room_id: result.data.room_id,
+          room: result.data.room,
+          capacity: result.data.capacity,
+          image: `https://placehold.co/400x400?text=${encodeURIComponent(result.data.room)}`,
+        },
+      ]);
+    } catch (error) {
+      console.error('Error adding room:', error);
     }
-    
-    rooms.push(newRoom)
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
@@ -27,6 +76,7 @@ const Dashboard = () => {
         <div className="space-y-8">
           <WarningPanel />
           <EmployeesList />
+          <TokenList />
         </div>
       </div>
     </div>

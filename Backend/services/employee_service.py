@@ -76,8 +76,8 @@ def get_employee_by_params(gender=None, age=None, top_color_id=None, bottom_colo
 
         existing_employee = employee_repository.get_employee_by(**params)
         
-        if len(existing_employee['data']) == 0:
-            return {"count":len(existing_employee['data']), "data": existing_employee['data'], "status": existing_employee['status'], "message": "No employee found with the provided parameters"}
+        if existing_employee['data'] == []:
+            return {"count": 0, "data": existing_employee['data'], "status": existing_employee['status'], "message": "No employee found with the provided parameters"}
         else:
             return {"count":len(existing_employee['data']), "data": existing_employee['data'], "status": existing_employee['status']}
     except Exception as e:

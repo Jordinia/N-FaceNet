@@ -50,16 +50,29 @@ def get_available_token_by_token(token):
         return {"data": token_data, "status": "success"}
     except KeyError:
         return {"status": "error", "message": "Invalid data"} 
+
+def get_approval_token():
+    try:
+        Token = token_repository.get_token_by(expired_date=(">", datetime.now()), is_approved=("=", 0))
+        if Token['data'] == None:
+            return {"count": 0, "data": Token['data'], "status": Token['status'], "message": "All tokens have been approved"}
+        else:
+            return {"count":len(Token['data']), "data": Token['data'], "status": Token['status']}
+    except KeyError:
+        return {"status": "error", "message": "Invalid data"} 
     
 def use_token(token):
     try:
         token = token_repository.get_token_by(token=token)
+        print(token)
         if token['status'] == "error":
             return {"status": "error", "message": token['message']}
         if token['data'] == None:
             return {"status": "error", "message": "Token not found"}
         
         token_data = token['data']
+        token_data = [dict(row) for row in token_data][0]
+        print(token_data)
         
         if token_data['is_approved'] == 0:
             return {"status": "error", "message": "Token haven't been approved"}
@@ -67,6 +80,7 @@ def use_token(token):
             return {"status": "error", "message": "Token already expired"}
 
         token_data['expired_date'] = datetime.now()
+        
         result = token_repository.update_token_by_id(token_data['token_id'], token_data)
 
         return {"data": token_data, "status": "success", "message": result["message"]} 
