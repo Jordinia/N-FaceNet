@@ -1,18 +1,31 @@
+import threading
 from repositories import camera_repository
 from datetime import datetime
+from person_detection import post_employee_detection
 
 def create_camera(camera):
     try:
         new_camera = {
             "created_date": datetime.now(),
             "room_id": camera['room_id'],
-            "stream_url": camera['stream_url'],
+            "camera_url": camera['camera_url'],
+            "stream_url": None
         }
-        
+
+        # Save camera to repository
         result = camera_repository.create_camera(new_camera)
         new_camera['camera_id'] = result['camera_id']
 
+        # Retrieve created camera
         created_camera = camera_repository.get_camera_by_id(new_camera['camera_id'])
+
+        # Start post_employee_detection in a new thread
+        detection_thread = threading.Thread(
+            target=post_employee_detection,
+            args=(new_camera,),  # Pass camera_id as an argument
+            daemon=True
+        )
+        detection_thread.start()
 
         return {"data": created_camera['data'], "status": "success", "message": result['message']}
     except KeyError:

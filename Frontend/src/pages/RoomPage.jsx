@@ -2,32 +2,43 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import axios from 'axios';
+import { Modal, Button, Input } from 'antd';
 
 const RoomPage = () => {
-  const [streamUrl, setStreamUrl] = useState(null); // Dynamically set from API
-  const videoRef = useRef(null); // Ref for the video element
+  const [rooms, setRooms] = useState([]); // State untuk menyimpan daftar rooms dari API
+  const [streamUrl, setStreamUrl] = useState(null);
+  const videoRef = useRef(null);
   const [cameras, setCameras] = useState([]);
-  const [showAddCamera, setShowAddCamera] = useState(false);
-  const [newCamera, setNewCamera] = useState({ name: '', url: '' });
-  const [detectedUsers, setDetectedUsers] = useState([]);
-  const { id } = useParams(); // Room ID from URL params
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [cameraUrl, setCameraUrl] = useState('');
+  const { id } = useParams(); // Room ID dari URL params
 
-  const rooms = [
-    { id: 1, name: 'Common Room' },
-    { id: 2, name: 'Bedroom' },
-    { id: 3, name: 'Kitchen' },
-  ];
-  const room = rooms.find((r) => r.id === parseInt(id));
-
+  // Ambil daftar rooms dari API
   useEffect(() => {
-    // Fetch camera data for the room
+    const fetchRooms = async () => {
+      try {
+        const response = await axios.get('http://localhost:5000/room');
+        if (response.data && response.data.data) {
+          setRooms(response.data.data);
+        } else {
+          console.error('No rooms found');
+        }
+      } catch (error) {
+        console.error('Error fetching rooms:', error);
+      }
+    };
+
+    fetchRooms();
+  }, []);
+
+  // Ambil data kamera untuk ruangan tertentu
+  useEffect(() => {
     const fetchCameraData = async () => {
       try {
         const response = await axios.get(`http://localhost:5000/camera/room/${id}`);
         if (response.data && response.data.data.length > 0) {
-          const cameraData = response.data.data[0]; // Assuming the first camera for the room
-          setStreamUrl(cameraData.stream_url);
-          setCameras(response.data.data); // Store all cameras
+          setStreamUrl(response.data.data[0].stream_url);
+          setCameras(response.data.data);
         } else {
           console.error('No cameras found for this room');
         }
@@ -38,35 +49,44 @@ const RoomPage = () => {
 
     fetchCameraData();
 
-    // Cleanup the stream connection when leaving the page
     return () => {
-      setStreamUrl(null); // This will close the connection by removing the stream URL
+      setStreamUrl(null);
     };
-  }, [id]); // Depend on `id` to refetch when the room ID changes
+  }, [id]);
 
-  const handleAddCamera = () => {
-    if (newCamera.name && newCamera.url) {
-      setCameras([...cameras, { ...newCamera, id: Date.now() }]);
-      setNewCamera({ name: '', url: '' });
-      setShowAddCamera(false);
-      simulateUserDetection();
+  const openModal = () => {
+    setCameraUrl('');
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setCameraUrl('');
+  };
+
+  const handleAddCamera = async () => {
+    try {
+      const response = await axios.post('http://localhost:5000/camera', {
+        room_id: id, // Gunakan room ID dari URL params
+        camera_url: cameraUrl,
+      });
+
+      if (response.status === 200 || response.status === 201) {
+        setCameras([...cameras, response.data]); // Asumsikan API mengembalikan kamera yang ditambahkan
+        closeModal();
+      } else {
+        console.error('Failed to add camera');
+      }
+    } catch (error) {
+      console.error('Error adding camera:', error);
     }
   };
 
   const handleDeleteCamera = (cameraId) => {
-    setCameras(cameras.filter((camera) => camera.id !== cameraId));
+    setCameras(cameras.filter((camera) => camera.camera_id !== cameraId));
   };
 
-  const simulateUserDetection = () => {
-    const newUser = {
-      id: Date.now(),
-      gender: Math.random() > 0.5 ? 'Male' : 'Female',
-      age: Math.floor(Math.random() * 60) + 18, // Age between 18 and 78
-      clothing: 'Casual', // Example clothing
-    };
-    setDetectedUsers((prevUsers) => [...prevUsers, newUser]);
-    setTimeout(simulateUserDetection, 2000); // Repeat detection every 2 seconds
-  };
+  const room = rooms.find((r) => r.room_id === parseInt(id)); // Cari room berdasarkan room_id
 
   if (!room) return <div>Room not found</div>;
 
@@ -77,11 +97,10 @@ const RoomPage = () => {
           <Link to="/" className="hover:text-gray-600">
             <ArrowLeft className="w-6 h-6" />
           </Link>
-          <h1 className="text-2xl font-bold">{room.name}</h1>
+          <h1 className="text-2xl font-bold">{room.room}</h1>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Camera Cards */}
           {cameras.map((camera) => (
             <div key={camera.camera_id} className="bg-white rounded-xl shadow-sm p-4">
               <div className="flex justify-between items-start mb-4">
@@ -94,7 +113,6 @@ const RoomPage = () => {
                 </button>
               </div>
               <div className="aspect-video bg-gray-100 rounded-lg mb-4 overflow-hidden">
-                {/* MJPEG stream using img tag */}
                 <img
                   src={camera.stream_url}
                   alt={`Camera ${camera.camera_id}`}
@@ -103,32 +121,33 @@ const RoomPage = () => {
               </div>
             </div>
           ))}
+
+          <div
+            className="bg-white rounded-xl shadow-sm p-4 flex items-center justify-center cursor-pointer hover:shadow-md"
+            onClick={openModal}
+          >
+            <Plus className="w-8 h-8 text-gray-500" />
+          </div>
         </div>
 
-        {/* Detected Users Table */}
-        <div className="mt-8">
-          <h2 className="text-xl font-bold">Detected Users</h2>
-          <table className="min-w-full mt-4 bg-white border border-gray-200">
-            <thead>
-              <tr>
-                <th className="py-2 px-4 border-b">ID</th>
-                <th className="py-2 px-4 border-b">Gender</th>
-                <th className="py-2 px-4 border-b">Age</th>
-                <th className="py-2 px-4 border-b">Clothing</th>
-              </tr>
-            </thead>
-            <tbody>
-              {detectedUsers.map((user) => (
-                <tr key={user.id}>
-                  <td className="py-2 px-4 border-b">{user.id}</td>
-                  <td className="py-2 px-4 border-b">{user.gender}</td>
-                  <td className="py-2 px-4 border-b">{user.age}</td>
-                  <td className="py-2 px-4 border-b">{user.clothing}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <Modal
+          title="Add Camera"
+          open={isModalOpen}
+          onOk={handleAddCamera}
+          onCancel={closeModal}
+        >
+          <div className="flex flex-col gap-4">
+            <div>
+              <label htmlFor="camera_url">Camera URL</label>
+              <Input
+                value={cameraUrl}
+                onChange={(e) => setCameraUrl(e.target.value)}
+                id="camera_url"
+                placeholder="Enter Camera URL"
+              />
+            </div>
+          </div>
+        </Modal>
       </div>
     </div>
   );

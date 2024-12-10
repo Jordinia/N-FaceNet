@@ -9,7 +9,7 @@ def determine_color():
     return data
 
 def determine_employee_id():
-    employee_id = 7
+    employee_id = 2
     data = {
         "employee_id": employee_id
     }

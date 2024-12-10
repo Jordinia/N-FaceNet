@@ -19,6 +19,7 @@ def get_db_connection():
 | room_id      | integer      | NO   |     | NULL    |                |
 | created_date | timestamp    | NO   |     | NULL    |                |
 | stream_url   | varchar(255) | NO   |     | NULL    |                |
+| camera_url   | varchar(255) | NO   |     | NULL    |                |
 +--------------+--------------+------+-----+---------+----------------+
 """
 
@@ -30,13 +31,14 @@ def create_camera(room_data):
         room_id = room_data['room_id']
         created_date = room_data['created_date']
         stream_url = room_data['stream_url']
+        camera_url = room_data['camera_url']
 
         query = """
-        INSERT INTO camera (room_id, created_date, stream_url) 
-        VALUES (%s, %s, %s)
+        INSERT INTO camera (room_id, created_date, camera_url, stream_url) 
+        VALUES (%s, %s, %s, %s)
         RETURNING camera_id
         """
-        cursor.execute(query, (room_id, created_date, stream_url))
+        cursor.execute(query, (room_id, created_date, camera_url, stream_url))
         connection.commit()
 
         camera_id = cursor.fetchone()[0]

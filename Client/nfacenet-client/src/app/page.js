@@ -144,6 +144,10 @@ export default function Home() {
     router.push('/register'); // Navigate to /register page
   };
 
+  const handleGoToSignUp = () => {
+    router.push('/signup'); // Navigate to /register page
+  };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
       {/* Two Video Frames */}
@@ -192,38 +196,52 @@ export default function Home() {
       />
 
       {/* Canvas (hidden for photo capture) */}
-      <canvas ref={canvasRef1} className="hidden"></canvas>
-      <canvas ref={canvasRef2} className="hidden"></canvas>
+      <div className="flex flex-row space-x-4">
+        <canvas ref={canvasRef1} className="hidden"></canvas>
+        <canvas ref={canvasRef2} className="hidden"></canvas>
+      </div>
 
       {/* Display Captured Photos */}
-      {photo1 && (
-        <div className="mt-8 flex flex-col items-center">
-          <label className="text-lg font-semibold mb-2">Captured Photo from Face Camera</label>
-          <img
-            src={photo1.split('_')[1]} // Remove the prefix for the src
-            alt="Captured from Face Camera"
-            className="w-64 h-auto rounded-lg border-2 border-gray-300"
-          />
-        </div>
-      )}
-      {photo2 && (
-        <div className="mt-8 flex flex-col items-center">
-          <label className="text-lg font-semibold mb-2">Captured Photo from Body Camera</label>
-          <img
-            src={photo2.split('_')[2]} // Remove the prefix for the src
-            alt="Captured from Body Camera"
-            className="w-64 h-auto rounded-lg border-2 border-gray-300"
-          />
-        </div>
-      )}
+      <div className="flex flex-row space-x-4">
+        {photo1 && (
+          <div className="mt-8 flex flex-col items-center">
+            <label className="text-lg font-semibold mb-2">Captured Photo from Face Camera</label>
+            <img
+              src={photo1.split('_')[1]} // Remove the prefix for the src
+              alt="Captured from Face Camera"
+              className="w-64 h-auto rounded-lg border-2 border-gray-300"
+            />
+          </div>
+        )}
+        {photo2 && (
+          <div className="mt-8 flex flex-col items-center">
+            <label className="text-lg font-semibold mb-2">Captured Photo from Body Camera</label>
+            <img
+              src={photo2.split('_')[2]} // Remove the prefix for the src
+              alt="Captured from Body Camera"
+              className="w-64 h-auto rounded-lg border-2 border-gray-300"
+            />
+          </div>
+        )}
+      </div>
 
       {/* New Button to Go to Register Page */}
-      <button
-        onClick={handleGoToRegister}
-        className="mt-6 p-2 bg-green-500 text-white rounded-full shadow-md hover:bg-green-400 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2"
-      >
-        Register
-      </button>
+      <div className="flex flex-row space-x-4">
+        <button
+          onClick={handleGoToRegister}
+          className="mt-6 p-2 bg-green-500 text-white rounded-full shadow-md hover:bg-green-400 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2"
+        >
+          Register
+        </button>
+        
+        {/* New Button to Go to Register Page */}
+        <button
+          onClick={handleGoToSignUp}
+          className="mt-6 p-2 bg-green-500 text-white rounded-full shadow-md hover:bg-green-400 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2"
+        >
+          Sign Up
+        </button>
+      </div>
     </div>
   );
 }
