@@ -2,6 +2,8 @@ from repositories import entrylog_repository
 from services import employee_service, color_service
 from machine_learning import determine_color, determine_employee_id
 from datetime import datetime
+from detections import outfit_detection_cpu
+from ultralytics import YOLO
 import pysftp
 import os
 
@@ -29,6 +31,10 @@ def checkin(employee_id, data):
         }
 
         download_face(face_data)
+        outfit_model = YOLO("detections/weights/topbottomv2.onnx")
+        image, outfit = outfit_detection_cpu.check_outfit(face_data['faceImagePath'], outfit_model)
+
+        print(outfit)
 
         # Get the employee details
         employee = employee_service.get_employee(employee_id)
